@@ -302,7 +302,7 @@ class BiasedADMTrainer(BaseTrainer):
                         outputs = net(inputs[semi_targets == -2])
                         n_samples += torch.sum(semi_targets == -2).item()
                         c += torch.sum(outputs, dim=0)
-                else:   #没有低风险样本的情况
+                else:   # if there's no non-target sample
                     outputs = net(inputs[semi_targets == 0])
                     output_list.append(outputs)
                     output_idx_list.append(idx)
