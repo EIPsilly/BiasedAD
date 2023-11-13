@@ -45,6 +45,7 @@ class MyDataset(Dataset):
         self.data = x
         self.labels = y
         self.semi_targets = target
+        # samples are selected as non-target
         self.sampled = np.zeros_like(y)
         self.transform = transform
         self.target_transform = target_transform

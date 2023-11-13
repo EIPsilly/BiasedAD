@@ -12,6 +12,7 @@ from base.base_trainer import BaseTrainer
 from sklearn.metrics import roc_auc_score, precision_recall_curve, auc, confusion_matrix, roc_curve
 from utils.write2txt import writer2txt
 from collections import Counter
+import heapq
 
 def Find_Optimal_Cutoff(TPR, FPR, threshold):
     y = TPR - FPR
@@ -24,7 +25,7 @@ class BiasedADMTrainer(BaseTrainer):
 
     def __init__(self, c, anchor, eta_0: float, eta_1: float, eta_2: float, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150,
                  lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
-                 n_jobs_dataloader: int = 0, sample_count: int=100):
+                 n_jobs_dataloader: int = 0, sample_count: int=100, update_anchor = None):
         super().__init__(optimizer_name, lr, n_epochs, lr_milestones, batch_size, weight_decay, device,
                          n_jobs_dataloader)
         self.optimizer_name = optimizer_name
@@ -36,6 +37,7 @@ class BiasedADMTrainer(BaseTrainer):
         self.device = device
         self.n_jobs_dataloader = n_jobs_dataloader
         self.sample_count = sample_count
+        self.update_anchor = update_anchor
 
         # parameters
         self.c = torch.tensor(c, device=self.device) if c is not None else None
@@ -54,6 +56,8 @@ class BiasedADMTrainer(BaseTrainer):
         self.test_auc = None
         self.test_time = None
         self.test_scores = None
+
+        self.topk = None
 
     def train(self, dataset, net: BaseNet):
         logger = logging.getLogger()
@@ -95,9 +99,14 @@ class BiasedADMTrainer(BaseTrainer):
             n_batches = 0
             epoch_start_time = time.time()
             
-
-            self.anchor, idx = self.init_and_update_center_anchor(dataset, net)
             
+            if self.update_anchor == "update_10_epoch":
+                if epoch < 10:
+                    self.anchor, _ = self.init_and_update_center_anchor(dataset, net)
+            else:
+                self.anchor, _ = self.init_and_update_center_anchor(dataset, net)
+                self.topk = []
+
             writer = writer2txt()
             writer.log("distance_c_to_anchor: {:.6f}".format(torch.sum((self.c - self.anchor) ** 2)))
 
@@ -105,7 +114,7 @@ class BiasedADMTrainer(BaseTrainer):
             hard_target_loss_sum = 0.0
             easy_sample_count = 0
             easy_target_loss_sum = 0.0
-
+            dist_to_c_list = []
             for data in train_loader:
                 idx, inputs, _, semi_targets, sampled = data
 
@@ -123,6 +132,13 @@ class BiasedADMTrainer(BaseTrainer):
                 dist_to_c = torch.sum((outputs - self.c) ** 2, dim=1)
                 dist_to_anchor = torch.sum((outputs - self.anchor) ** 2, dim=1)
                 
+                if self.update_anchor == "heap":
+                    for i, item in enumerate(dist_to_c):
+                        if len(self.topk) < self.sample_count:
+                            heapq.heappush(self.topk, (item.item(), idx[i], outputs[i].clone().detach()))
+                        elif self.topk[0][0] < item:
+                            heapq.heappushpop(self.topk, (item.item(), idx[i], outputs[i].clone().detach()))
+
                 # If the distance is greater than or equal to distance_c_anchor, set mask_easy to 1; otherwise, set mask_easy to 0.
                 # mask_hard is the opposite of mask_easy.
                 # These two items only take effect when semi=-1.
@@ -161,9 +177,9 @@ class BiasedADMTrainer(BaseTrainer):
 
                 epoch_loss += loss.item()
                 n_batches += 1
-
+            
             epoch_train_time = time.time() - epoch_start_time
-            print(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |', end="")
+            print(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |')
             # print('hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))
             
             writer.log(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |' + 'hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))
@@ -285,8 +301,17 @@ class BiasedADMTrainer(BaseTrainer):
         """Initialize hypersphere center anchor as the mean from an initial forward pass on the data."""
         n_samples = 0
         c = torch.zeros(net.rep_dim, device=self.device)
-        # zero = torch.zeros(self.batch_size, device=self.device)
-        
+
+        if self.update_anchor == "heap":
+            if self.topk is not None:
+                c = torch.stack([item[2] for item in self.topk]).mean(0)
+                idx = np.array([item[1].cpu().numpy() for item in self.topk])
+                dataset.clean_sampled()
+                dataset.modify_sampled(idx, 1)
+                c[(abs(c) < eps) & (c < 0)] = -eps
+                c[(abs(c) < eps) & (c > 0)] = eps
+                return c, None
+
         train_loader, _ = dataset.loaders(batch_size=self.batch_size, num_workers=self.n_jobs_dataloader)
 
         net.eval()
@@ -325,5 +350,10 @@ class BiasedADMTrainer(BaseTrainer):
         # If c_i is too close to 0, set to +-eps. Reason: a zero unit can be trivially matched with zero weights.
         c[(abs(c) < eps) & (c < 0)] = -eps
         c[(abs(c) < eps) & (c > 0)] = eps
+
+        # print(c)
+        # with open("./anchor.out", "a", encoding="utf-8") as f:
+        #     f.write(",".join([str(x_i) for x_i in c.cpu().numpy().tolist()]))
+        #     f.write("\n")
 
         return c, idx

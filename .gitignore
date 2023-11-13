@@ -4,3 +4,7 @@ result
 check
 log
 data
+*.out
+.vscode
+*.txt
+analysis

@@ -31,9 +31,12 @@ class MyDataset(Dataset):
 
 class sqb_for_BADM():
 
-    def __init__(self):
+    def __init__(self, sqb_test_frac):
         
-        sqbdata = np.load("./data/SQB/sqb_data_for_BADM.npz")
+        if sqb_test_frac is not None:
+            sqbdata = np.load(f'./data/SQB/sqb_data_for_BADM_test_{sqb_test_frac}.npz')
+        else:
+            sqbdata = np.load("./data/SQB/sqb_data_for_BADM.npz")
 
         x_train = sqbdata["x_train"]
         y_train = sqbdata["y_train"]

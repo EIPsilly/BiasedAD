@@ -12,6 +12,14 @@ from utils.write2txt import writer2txt
 import os
 import re
 from BiasedAD import BiasedAD
+from datasets.nb15_contamination import NB15_contamination_Dataset
+from datasets.nb15_contamination_for_BADM import NB15_contamination_for_BADM
+from datasets.nb15 import NB15Dataset
+from datasets.nb15_for_BADM import nb15_for_BADM
+from datasets.fashionmnist import FashionMNIST_Dataset
+from datasets.fashionmnist_for_BADM import fashionmnist_for_BADM
+from datasets.sqb import SQBDataset
+from datasets.sqb_for_BADM import sqb_for_BADM
 
 @click.command()
 @click.option('--model_type', type=click.Choice(["BiasedAD", "BiasedADM"]), default="BiasedAD")
@@ -49,13 +57,18 @@ from BiasedAD import BiasedAD
 # Controls the number of non-target categories
 @click.option("--nb15_non_target_class_num" , type=int, default = 4)
 
+@click.option("--sqb_test_frac" , type=int, default = None)
+@click.option("--update_anchor" , type=str, default = "heap")
+
 def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, random_seed,
          lr, epoch, batch_size, weight_decay,
          ae_lr, ae_epoch, ae_batch_size, ae_weight_decay, sample_count,
          times, eta_0, eta_1, eta_2,
          s_non_target, s_target, nb15_non_target_class_num,
-         normal_class, non_target_outlier_class, target_outlier_class):
-
+         normal_class, non_target_outlier_class, target_outlier_class,
+         sqb_test_frac, update_anchor):
+    
+    
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu
     file_save_path = dir_path
 
@@ -67,15 +80,13 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
             file_name = "dataset=NB15_contamination"
 
             if model_type == "BiasedAD":
-                from datasets.nb15_contamination import NB15_contamination_Dataset
                 dataset = NB15_contamination_Dataset(dataset_name, random_seed)
                 default_eta_0 = 20
                 default_eta_1 = 1
                 default_eta_2 = 2
             elif model_type == "BiasedADM":
-                from datasets.nb15_contamination_for_BADM import NB15_contamination_for_BADM
                 dataset = NB15_contamination_for_BADM(dataset_name, s_non_target = 0, s_target = s_target, nb15_non_target_class_num = 4, seed = random_seed)
-                default_eta_0 = 20
+                default_eta_0 = 10
                 default_eta_1 = 2
                 default_eta_2 = 1
             
@@ -86,22 +97,19 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
             ae_lr = 0.0001 if ae_lr is None else ae_lr
             ae_batch_size = 128 if ae_batch_size is None else ae_batch_size
             ae_epoch = 30 if ae_epoch is None else ae_epoch
-            MRBAD_lr = 0.00001
-            MRBAD_batch_size = 128
-            MRBAD_epoch = 50
-
+            BAD_lr = 0.00001
+            BAD_batch_size = 128
+            BAD_epoch = 50
 
         elif dataset_name == "nb15":
             if model_type == "BiasedAD":
-                from datasets.nb15 import NB15Dataset
                 dataset = NB15Dataset(s_non_target, s_target, nb15_non_target_class_num, random_seed)
                 default_eta_0 = 20
                 default_eta_1 = 1
                 default_eta_2 = 2
             elif model_type == "BiasedADM":
-                from datasets.nb15_for_BADM import nb15_for_BADM
                 dataset = nb15_for_BADM(0, s_target, nb15_non_target_class_num, random_seed)
-                default_eta_0 = 20
+                default_eta_0 = 10
                 default_eta_1 = 2
                 default_eta_2 = 1
             net_name = 'mlp_for_nb15'
@@ -109,9 +117,9 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
             ae_lr = 0.0001 if ae_lr is None else ae_lr
             ae_batch_size = 128 if ae_batch_size is None else ae_batch_size
             ae_epoch = 30 if ae_epoch is None else ae_epoch
-            MRBAD_lr = 0.00001
-            MRBAD_batch_size = 128
-            MRBAD_epoch = 50
+            BAD_lr = 0.00001
+            BAD_batch_size = 128
+            BAD_epoch = 50
 
         elif dataset_name == "fashionmnist":
             if normal_class != non_target_outlier_class:
@@ -142,7 +150,6 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
                 labeled_non_target_outlier_number = 0
 
             if model_type == "BiasedAD":
-                from datasets.fashionmnist import FashionMNIST_Dataset
                 dataset = FashionMNIST_Dataset("./data",
                                             normal_class,
                                             unlabeled_normal_number,
@@ -164,7 +171,6 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
                 default_eta_1 = 1
                 default_eta_2 = 2
             elif model_type == "BiasedADM":
-                from datasets.fashionmnist_for_BADM import fashionmnist_for_BADM
                 dataset = fashionmnist_for_BADM("./data",
                                                 normal_class,
                                                 unlabeled_normal_number,
@@ -196,40 +202,38 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
             ae_lr = 0.0001 if ae_lr is None else ae_lr
             ae_batch_size = 128 if ae_batch_size is None else ae_batch_size
             ae_epoch = 10 if ae_epoch is None else ae_epoch
-            MRBAD_lr = 0.0001
-            MRBAD_batch_size = 128
-            MRBAD_epoch = 30
+            BAD_lr = 0.0001
+            BAD_batch_size = 128
+            BAD_epoch = 30
 
         elif dataset_name == "SQB":
             if model_type == "BiasedAD":
-                from datasets.sqb import SQBDataset
-                dataset = SQBDataset()
+                dataset = SQBDataset(sqb_test_frac)
                 default_eta_0 = 1
                 default_eta_1 = 1
                 default_eta_2 = 2
             elif model_type == "BiasedADM":
-                from datasets.sqb_for_BADM import sqb_for_BADM
-                dataset = sqb_for_BADM()
+                dataset = sqb_for_BADM(sqb_test_frac)
                 default_eta_0 = 10
-                default_eta_1 = 1
-                default_eta_2 = 2
+                default_eta_1 = 2
+                default_eta_2 = 1
 
-            file_name = "dataset=sqb,"
+            file_name = f'dataset=sqb,sqb_test_frac={sqb_test_frac},'
             net_name = "mlp_for_sqb"
             lr, epoch, batch_size
             ae_lr = 0.0001 if ae_lr is None else ae_lr
             ae_batch_size = 128 if ae_batch_size is None else ae_batch_size
             ae_epoch = 30 if ae_epoch is None else ae_epoch
-            MRBAD_lr = 0.0001
-            MRBAD_batch_size = 128
-            MRBAD_epoch = 50
+            BAD_lr = 0.0001
+            BAD_batch_size = 128
+            BAD_epoch = 50
             
         if not (lr is None):
-            MRBAD_lr = lr
+            BAD_lr = lr
         if not (epoch is None):
-            MRBAD_epoch = epoch
+            BAD_epoch = epoch
         if not (batch_size is None):
-            MRBAD_batch_size = batch_size
+            BAD_batch_size = batch_size
         if eta_0 is None:
             eta_0 = default_eta_0
         if eta_1 is None:
@@ -245,7 +249,7 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
 
         writer = writer2txt()
     
-        model = BiasedAD(eta_0, eta_1, eta_2, model_type)
+        model = BiasedAD(eta_0, eta_1, eta_2, model_type, update_anchor)
         model.set_network(net_name)
         model.pretrain(dataset, optimizer_name='adam',
                         lr=ae_lr,
@@ -262,15 +266,15 @@ def main(model_type, dir_path, dataset_name, device, gpu, intermediate_flag, ran
             np.savez(file_save_path + "/" + file_name + "train_data.npz", train_data_input = train_data_input, train_data_label = train_data_label, train_data_semi_target = train_data_semi_target)
             np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
         else:
-            output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},MRBAD_lr={},MRBAD_batchsize={},MRBAD_epoch={},sample_count={},model_type={}'.format(str(contaminationRate), str(eta_0), str(eta_1), str(eta_2), str(MRBAD_lr), str(MRBAD_batch_size), str(MRBAD_epoch), str(sample_count), model_type)
+            output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(eta_0), str(eta_1), str(eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(sample_count), model_type, update_anchor)
             writer.set_output_name(output_name)
             writer.set_file_save_path(file_save_path)
             writer.set_path("{}/{}.txt".format(file_save_path, output_name), "./log/{}_log/{}".format(dir_path.split("/")[-1], output_name))
             model.train(dataset,
                         optimizer_name='adam',
-                        lr=MRBAD_lr,
-                        n_epochs=MRBAD_epoch,
-                        batch_size=MRBAD_batch_size,
+                        lr=BAD_lr,
+                        n_epochs=BAD_epoch,
+                        batch_size=BAD_batch_size,
                         weight_decay=weight_decay,
                         device=device,
                         n_jobs_dataloader=0,

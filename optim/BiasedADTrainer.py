@@ -96,7 +96,7 @@ class BiasedADTrainer(BaseTrainer):
             epoch_start_time = time.time()
             
 
-            self.anchor, idx = self.init_and_update_center_anchor(train_loader, net)
+            self.anchor, _ = self.init_and_update_center_anchor(train_loader, net)
             
             writer = writer2txt()
             writer.log("distance_c_to_anchor: {:.6f}".format(torch.sum((self.c - self.anchor) ** 2)))
@@ -158,7 +158,7 @@ class BiasedADTrainer(BaseTrainer):
                 n_batches += 1
 
             epoch_train_time = time.time() - epoch_start_time
-            print(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |', end="")
+            print(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |')
             # print('hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))
             
             writer.log(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |' + 'hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))

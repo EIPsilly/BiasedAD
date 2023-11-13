@@ -1,3 +1,5 @@
+from optim.BiasedADTrainer import BiasedADTrainer
+from optim.BiasedADMTrainer import BiasedADMTrainer
 from networks.main import build_network, build_autoencoder
 from optim.AETrainer import AETrainer
 import numpy as np
@@ -8,8 +10,8 @@ from collections import Counter
 
 class BiasedAD(object):
 
-    def __init__(self, eta_0: float = 1.0, eta_1: float = 1.0, eta_2: float = 2.0, model_type: str = "BiasedAD"):
-        """Inits MRBAD with hyperparameter eta."""
+    def __init__(self, eta_0: float = 1.0, eta_1: float = 1.0, eta_2: float = 2.0, model_type: str = "BiasedAD", update_anchor=None):
+        """Inits BAD with hyperparameter eta."""
         
         self.eta_0 = eta_0
         self.eta_1 = eta_1
@@ -17,6 +19,7 @@ class BiasedAD(object):
         self.c = None  # hypersphere center c
         self.anchor = None 
         self.model_type = model_type
+        self.update_anchor = update_anchor
 
         self.net_name = None
         self.net = None  # neural network phi
@@ -55,15 +58,13 @@ class BiasedAD(object):
         self.optimizer_name = optimizer_name
         
         if self.model_type == "BiasedAD":
-            from optim.BiasedADTrainer import BiasedADTrainer
             self.trainer = BiasedADTrainer(self.c, self.anchor, self.eta_0, self.eta_1, self.eta_2, optimizer_name=optimizer_name, lr=lr, n_epochs=n_epochs,
                                     lr_milestones=lr_milestones, batch_size=batch_size, weight_decay=weight_decay,
                                     device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count)
         elif self.model_type == "BiasedADM":
-            from optim.BiasedADMTrainer import BiasedADMTrainer
             self.trainer = BiasedADMTrainer(self.c, self.anchor, self.eta_0, self.eta_1, self.eta_2, optimizer_name=optimizer_name, lr=lr, n_epochs=n_epochs,
                                     lr_milestones=lr_milestones, batch_size=batch_size, weight_decay=weight_decay,
-                                    device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count)
+                                    device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count, update_anchor=self.update_anchor)
         
         # Get the model
         self.net = self.trainer.train(dataset, self.net)
