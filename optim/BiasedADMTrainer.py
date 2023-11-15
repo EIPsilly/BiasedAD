@@ -188,7 +188,8 @@ class BiasedADMTrainer(BaseTrainer):
             list_easy_sample_count.append(easy_sample_count)
             list_hard_sample_sum.append(hard_target_loss_sum)
             list_easy_sample_sum.append(easy_target_loss_sum)
-
+        
+        self.train_time = time.time() - start_time
 
         print('list_hard_sample_count', list_hard_sample_count)
         print('list_easy_sample_count', list_easy_sample_count)
@@ -199,7 +200,7 @@ class BiasedADMTrainer(BaseTrainer):
         list_hard_sample_sum = np.array(list_hard_sample_sum)
         list_easy_sample_sum = np.array(list_easy_sample_sum)
         
-        self.train_time = time.time() - start_time
+        
 
         return net
 

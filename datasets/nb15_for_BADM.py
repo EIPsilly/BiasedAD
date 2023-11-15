@@ -32,7 +32,12 @@ class MyDataset(Dataset):
 
 class nb15_for_BADM():
 
-    def __init__(self, s_non_target = 100, s_target = 100, nb15_non_target_class_num = 4, random_seed = None):
+    def __init__(self, args):
+        s_non_target = args.s_non_target
+        s_target = args.s_target
+        nb15_non_target_class_num = args.nb15_non_target_class_num
+        nb15_target_class = args.nb15_target_class
+        random_seed = args.random_seed
 
         Labelled_non_target_target = pd.read_csv('./data/nb15/Labelled_data.csv', index_col=0)
         Unlabelled_mix = pd.read_csv('./data/nb15/Unlabelled_data.csv', index_col=0)
@@ -56,8 +61,12 @@ class nb15_for_BADM():
         target_1 = Labelled_target.loc[(Labelled_target['attack_cat'] == 'DoS')].sample(s_target, random_state = random_seed)
         target_2 = Labelled_target.loc[(Labelled_target['attack_cat'] == 'Generic')].sample(s_target, random_state = random_seed)
         target_3 = Labelled_target.loc[(Labelled_target['attack_cat'] == 'Backdoor')].sample(s_target, random_state = random_seed)
-        sampled_target = pd.concat([target_1, target_2, target_3])
-
+        target_list = {
+            "DoS": target_1,
+            "Generic": target_2,
+            "Backdoor": target_3,
+        }
+        sampled_target = pd.concat([target_list[key] for key in nb15_target_class])
         selected_Labelled_non_target_target = pd.concat([sampled_target, sampled_non_target])
 
         # get x_test, y_test, target_y_test
