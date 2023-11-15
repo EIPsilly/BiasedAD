@@ -34,6 +34,7 @@ class NB15Dataset():
         Labelled_non_target_target = pd.read_csv('./data/nb15/Labelled_data.csv', index_col=0)
         Unlabelled_mix = pd.read_csv('./data/nb15/Unlabelled_data.csv', index_col=0)
         test_mix = pd.read_csv('./data/nb15/test_data.csv', index_col=0)
+        Unlabelled_mix = Unlabelled_mix[~ Unlabelled_mix["attack_cat"].isin(set(["DoS", "Generic", "Backdoor"]) - set(nb15_target_class))]
 
         Labelled_non_target = Labelled_non_target_target.loc[(Labelled_non_target_target['attack_cat'] == 'Fuzzers') |
                                              (Labelled_non_target_target['attack_cat'] == 'Analysis') |
@@ -69,6 +70,7 @@ class NB15Dataset():
         test_mix.loc[(test_mix['attack_cat'] == 'Generic') | (test_mix['attack_cat'] == 'DoS') | (test_mix['attack_cat'] == 'Backdoor'), 'label'] = 1
         test_mix.loc[(test_mix['attack_cat'] != 'Generic') & (test_mix['attack_cat'] != 'DoS') & (test_mix['attack_cat'] != 'Backdoor'), 'label'] = 0
         # print('test_mix:', Counter(test_mix.label))
+        test_mix = test_mix[~ test_mix["attack_cat"].isin(set(["DoS", "Generic", "Backdoor"]) - set(nb15_target_class))]
 
         x_test = test_mix.drop(['attack_cat', 'label'], axis=1).values
         x_test = x_test.astype(np.float32)
