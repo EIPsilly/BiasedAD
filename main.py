@@ -24,12 +24,13 @@ from datasets.sqb_for_BADM import sqb_for_BADM
 
 args = argparse.ArgumentParser()
 args.add_argument('--model_type', type=click.Choice(["BiasedAD", "BiasedADM"]), default="BiasedAD")
-args.add_argument('--dir_path', type=str, default="./result")
+args.add_argument('--dir_path', type=str, default="./result/DEBUG")
 args.add_argument('--dataset_name', type=str, default="nb15")
 args.add_argument('--device', type=str, default="cuda")
 args.add_argument('--gpu', type=str, default="3")
 args.add_argument('--intermediate_flag', type=bool, default=False)
 args.add_argument("--random_seed" , type=int, default = None)
+args.add_argument('--debug', type=bool, default=False)
 
 args.add_argument("--lr" , type=float, default = None)
 args.add_argument("--epoch" , type=int, default = None)
@@ -61,7 +62,16 @@ args.add_argument("--nb15_non_target_class_num" , type=int, default = 4)
 args.add_argument("--nb15_target_class", nargs="+", type=str, default=["DoS", "Generic", "Backdoor"], choices=["DoS", "Generic", "Backdoor"])
 
 args.add_argument("--sqb_test_frac" , type=int, default = None)
-args.add_argument("--update_anchor" , type=str, default = "heap")
+args.add_argument("--update_anchor" , type=str, default = "default")
+args.add_argument("--update_epoch" , type=int, default = 10)
+
+# args = args.parse_args(["--dir_path","./result/DEBUG", "--gpu", "0","--ae_epoch", "1", "--times", "1" , "--debug", False, "--model_type", "BiasedADM", "--update_anchor", "iforest", "--sample_count", "1500"])
+
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./check/fashionmnist_BAD", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "6", "--gpu", "3", "--random_seed", "0","--ae_epoch", "1"])
+
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BAD_eta", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0", "--eta_1", "1", "--eta_2", "1","--ae_epoch", "1"])
+
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_epoch_20231116", "--dataset_name", "nb15", "--gpu", "2", "--sample_count", "1500", "--random_seed", "0", "--update_anchor", "update_previous_epoch", "--update_epoch", "1", "--ae_epoch", "1"])
 
 args = args.parse_args()
 
@@ -80,12 +90,12 @@ for i in range(args.times):
             dataset = NB15_contamination_Dataset(args.dataset_name, args.random_seed)
             default_eta_0 = 20
             default_eta_1 = 1
-            default_eta_2 = 2
+            default_eta_2 = 1
         elif args.model_type == "BiasedADM":
             args.s_non_target = 0
             dataset = NB15_contamination_for_BADM(args.dataset_name, s_non_target = 0, s_target = args.s_target, nb15_non_target_class_num = 4, seed = args.random_seed)
             default_eta_0 = 10
-            default_eta_1 = 2
+            default_eta_1 = 1
             default_eta_2 = 1
         
         file_name += ","
@@ -104,12 +114,12 @@ for i in range(args.times):
             dataset = NB15Dataset(args)
             default_eta_0 = 20
             default_eta_1 = 1
-            default_eta_2 = 2
+            default_eta_2 = 1
         elif args.model_type == "BiasedADM":
             args.s_non_target = 0
             dataset = nb15_for_BADM(args)
             default_eta_0 = 10
-            default_eta_1 = 2
+            default_eta_1 = 1
             default_eta_2 = 1
         net_name = 'mlp_for_nb15'
         file_name = "s_non_target=" + str(args.s_non_target) + ",s_target=" + str(args.s_target) + ",nb15_non_target_class_num=" +str(args.nb15_non_target_class_num) + "," + f'nb15_target_class={"_".join(args.nb15_target_class)},'
@@ -168,7 +178,7 @@ for i in range(args.times):
                                         args.random_seed)
             default_eta_0 = 1
             default_eta_1 = 1
-            default_eta_2 = 2
+            default_eta_2 = 1
         elif args.model_type == "BiasedADM":
             dataset = fashionmnist_for_BADM("./data",
                                             args.normal_class,
@@ -189,7 +199,7 @@ for i in range(args.times):
                                             args.random_seed)
             default_eta_0 = 1
             default_eta_1 = 1
-            default_eta_2 = 2
+            default_eta_2 = 1
 
         net_name = "fmnist_LeNet"
         if args.normal_class == args.non_target_outlier_class:
@@ -210,11 +220,11 @@ for i in range(args.times):
             dataset = SQBDataset(args.sqb_test_frac)
             default_eta_0 = 1
             default_eta_1 = 1
-            default_eta_2 = 2
+            default_eta_2 = 1
         elif args.model_type == "BiasedADM":
             dataset = sqb_for_BADM(args.sqb_test_frac)
             default_eta_0 = 10
-            default_eta_1 = 2
+            default_eta_1 = 1
             default_eta_2 = 1
 
         file_name = f'dataset=sqb,sqb_test_frac={args.sqb_test_frac},'
@@ -240,15 +250,16 @@ for i in range(args.times):
     if args.eta_2 is None:
         args.eta_2 = default_eta_2
 
+    time.sleep(round(random.uniform(0.001, 0.01), 3))
     if not os.path.exists(file_save_path):
         os.makedirs(file_save_path)
     
     if not os.path.exists("./log/{}_log".format(args.dir_path.split("/")[-1])):
         os.makedirs("./log/{}_log".format(args.dir_path.split("/")[-1]))
 
-    writer = writer2txt()
-
-    model = BiasedAD(args.eta_0, args.eta_1, args.eta_2, args.model_type, args.update_anchor)
+    writer = writer2txt()    
+    
+    model = BiasedAD(args.eta_0, args.eta_1, args.eta_2, args.model_type, args.update_anchor, args.debug, args.update_epoch)
     model.set_network(net_name)
     model.pretrain(dataset, optimizer_name='adam',
                     lr=args.ae_lr,
@@ -265,7 +276,8 @@ for i in range(args.times):
         np.savez(file_save_path + "/" + file_name + "train_data.npz", train_data_input = train_data_input, train_data_label = train_data_label, train_data_semi_target = train_data_semi_target)
         np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
     else:
-        output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
+        # output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
+        output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},,model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
         writer.set_output_name(output_name)
         writer.set_file_save_path(file_save_path)
         writer.set_path("{}/{}.txt".format(file_save_path, output_name), "./log/{}_log/{}".format(args.dir_path.split("/")[-1], output_name))
@@ -279,6 +291,6 @@ for i in range(args.times):
                     n_jobs_dataloader=0,
                     sample_count=args.sample_count)
         model.test(dataset, device=args.device, n_jobs_dataloader=0)
-    with open(f'result/running_time/{args.model_type}_{args.dataset_name}.txt' , "a", encoding="utf-8") as f:
-        f.write(f'ae_train_time={model.ae_results["test_time"]},SAD_train_time={model.results["train_time"]},total_train_time={model.results["train_time"] + model.ae_results["test_time"]}')
+    with open(f'result/running_time_20231118/{args.model_type}_{args.dataset_name}.txt' , "a", encoding="utf-8") as f:
+        f.write(f'ae_train_time={model.ae_results["train_time"]},SAD_train_time={model.results["train_time"]},total_train_time={model.results["train_time"] + model.ae_results["train_time"]}')
         f.write("\n")

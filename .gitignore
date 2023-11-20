@@ -8,3 +8,5 @@ data
 .vscode
 *.txt
 analysis
+!BADM.sh
+!BAD.sh

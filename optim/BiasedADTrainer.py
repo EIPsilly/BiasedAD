@@ -24,7 +24,7 @@ class BiasedADTrainer(BaseTrainer):
 
     def __init__(self, c, anchor, eta_0: float, eta_1: float, eta_2: float, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 150,
                  lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
-                 n_jobs_dataloader: int = 0, sample_count: int=100):
+                 n_jobs_dataloader: int = 0, sample_count: int=100, debug=False):
         super().__init__(optimizer_name, lr, n_epochs, lr_milestones, batch_size, weight_decay, device,
                          n_jobs_dataloader)
         self.optimizer_name = optimizer_name
@@ -36,6 +36,7 @@ class BiasedADTrainer(BaseTrainer):
         self.device = device
         self.n_jobs_dataloader = n_jobs_dataloader
         self.sample_count = sample_count
+        self.debug = debug
 
         # parameters
         self.c = torch.tensor(c, device=self.device) if c is not None else None
@@ -75,15 +76,18 @@ class BiasedADTrainer(BaseTrainer):
             self.c = self.init_center_c(train_loader, net)
 
         self.has_non_target_flag = (dataset.train_set.semi_targets == -2).sum() != 0
+        if self.has_non_target_flag == False:
+            logger.error("The input must contain non-target exceptions")
 
         # Initialize anchor (if anchor not loaded)
         if self.anchor is None:
-            self.anchor, _ = self.init_and_update_center_anchor(train_loader, net)
+            self.anchor = self.init_and_update_center_anchor(train_loader, net)
 
-        list_hard_sample_count = []
-        list_easy_sample_count = []
-        list_hard_sample_sum = []
-        list_easy_sample_sum = []
+        if self.debug:
+            list_hard_sample_count = []
+            list_easy_sample_count = []
+            list_hard_sample_sum = []
+            list_easy_sample_sum = []
 
         # Training
         start_time = time.time()
@@ -96,15 +100,16 @@ class BiasedADTrainer(BaseTrainer):
             epoch_start_time = time.time()
             
 
-            self.anchor, _ = self.init_and_update_center_anchor(train_loader, net)
+            self.anchor = self.init_and_update_center_anchor(train_loader, net)
             
             writer = writer2txt()
             writer.log("distance_c_to_anchor: {:.6f}".format(torch.sum((self.c - self.anchor) ** 2)))
 
-            hard_sample_count = 0
-            hard_target_loss_sum = 0.0
-            easy_sample_count = 0
-            easy_target_loss_sum = 0.0
+            if self.debug:
+                hard_sample_count = 0
+                hard_target_loss_sum = 0.0
+                easy_sample_count = 0
+                easy_target_loss_sum = 0.0
 
             for data in train_loader:
                 inputs, _, semi_targets = data
@@ -118,39 +123,48 @@ class BiasedADTrainer(BaseTrainer):
                 
                 # Calculate the distance between c and anchor.
                 distance_c_anchor = torch.sum((self.c - self.anchor) ** 2)
-                
                 dist_to_c = torch.sum((outputs - self.c) ** 2, dim=1)
                 dist_to_anchor = torch.sum((outputs - self.anchor) ** 2, dim=1)
                 
-                # If the distance is greater than or equal to distance_c_anchor, set mask_easy to 1; otherwise, set mask_easy to 0.
-                # mask_hard is the opposite of mask_easy.
-                # These two items only take effect when semi=-1.
-                mask_easy = torch.where(dist_to_c >= distance_c_anchor, torch.tensor([1.0]).cuda(), torch.tensor([0.0]).cuda())
-                mask_hard = torch.where(dist_to_c < distance_c_anchor, torch.tensor([1.0]).cuda(), torch.tensor([0.0]).cuda())
-                
-                # target_to_c refers to the loss between target anomalies and c.
-                # target_to_anchor refers to the loss between target anomalies and anchor.
-                target_to_c = ((dist_to_c + self.eps) ** semi_targets.float())
-                target_to_anchor = ((dist_to_anchor + self.eps) ** semi_targets.float())
-                
-                # calculate the loss of easy-target
-                easy_target_loss = self.eta_1 * (target_to_c * mask_easy + target_to_anchor * mask_easy)
-                # calculate the loss of hard-target
-                hard_target_loss = self.eta_2 * target_to_c * mask_hard
-                # the loss of all target-anomalies
-                target_loss = easy_target_loss + hard_target_loss
-                
-                hard_sample_count += torch.where(semi_targets == -1, mask_hard, torch.tensor([0.0]).cuda()).sum().item()
-                hard_target_loss_sum += torch.where(semi_targets == -1, hard_target_loss, torch.zeros_like(hard_target_loss)).sum().item()
+                if self.debug:
+                    # If the distance is greater than or equal to distance_c_anchor, set mask_easy to 1; otherwise, set mask_easy to 0.
+                    # mask_hard is the opposite of mask_easy.
+                    # These two items only take effect when semi=-1.
+                    mask_easy = torch.where(dist_to_c >= distance_c_anchor, torch.tensor([1.0]).cuda(), torch.tensor([0.0]).cuda())
+                    mask_hard = torch.where(dist_to_c < distance_c_anchor, torch.tensor([1.0]).cuda(), torch.tensor([0.0]).cuda())
+                    
+                    # target_to_c refers to the loss between target anomalies and c.
+                    # target_to_anchor refers to the loss between target anomalies and anchor.
+                    target_to_c = ((dist_to_c + self.eps) ** semi_targets.float())
+                    target_to_anchor = ((dist_to_anchor + self.eps) ** semi_targets.float())
+                    
+                    # calculate the loss of easy-target
+                    easy_target_loss = self.eta_1 * (target_to_c * mask_easy + target_to_anchor * mask_easy)
+                    # calculate the loss of hard-target
+                    hard_target_loss = self.eta_2 * target_to_c * mask_hard
+                    # the loss of all target-anomalies
+                    target_loss = easy_target_loss + hard_target_loss
 
-                easy_sample_count += torch.where(semi_targets == -1, mask_easy, torch.tensor([0.0]).cuda()).sum().item()
-                easy_target_loss_sum += torch.where(semi_targets == -1, easy_target_loss, torch.zeros_like(easy_target_loss)).sum().item()
+                    hard_sample_count += torch.where(semi_targets == -1, mask_hard, torch.tensor([0.0]).cuda()).sum().item()
+                    hard_target_loss_sum += torch.where(semi_targets == -1, hard_target_loss, torch.zeros_like(hard_target_loss)).sum().item()
+
+                    easy_sample_count += torch.where(semi_targets == -1, mask_easy, torch.tensor([0.0]).cuda()).sum().item()
+                    easy_target_loss_sum += torch.where(semi_targets == -1, easy_target_loss, torch.zeros_like(easy_target_loss)).sum().item()
+                    
+                    normal_and_non_target_loss = torch.where(semi_targets == -2, self.eta_0 * dist_to_c, dist_to_c)
+                    
+                    losses = torch.where(semi_targets == -1, target_loss, normal_and_non_target_loss)
+                    loss = torch.mean(losses)
                 
-                normal_and_non_target_loss = torch.where(semi_targets == -2, self.eta_0 * dist_to_c, dist_to_c)
-                
-                losses = torch.where(semi_targets == -1, target_loss, normal_and_non_target_loss)
-                
-                loss = torch.mean(losses)
+                else:
+                    nomral_weights = (semi_targets == 0)
+                    easy_weights = self.eta_1 * ((semi_targets == -1) & (dist_to_c >= distance_c_anchor))
+                    hard_weights = self.eta_2 * ((semi_targets == -1) & (dist_to_c < distance_c_anchor))
+                    anchor_weights = self.eta_0 * ((semi_targets == -2))
+                    weights = nomral_weights + easy_weights + hard_weights + anchor_weights
+                    loss = torch.mean(weights.float() * torch.where(semi_targets != -1, dist_to_c, 1 / (dist_to_c + self.eps)) + easy_weights.float() * 1 / (dist_to_anchor + self.eps))
+
+
                 loss.backward()
                 optimizer.step()
 
@@ -161,25 +175,25 @@ class BiasedADTrainer(BaseTrainer):
             print(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |')
             # print('hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))
             
-            writer.log(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |' + 'hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))
+            if self.debug:
+                writer.log(f'| Epoch: {epoch + 1:03}/{self.n_epochs:03} | Train Time: {epoch_train_time:.3f}s 'f'| Train Loss: {epoch_loss / n_batches:.6f} |' + 'hard_sample_count: {:.2f} | hard_sample_loss_sum: {:.2f} | easy_sample_count: {:.2f} | easy_sample_loss_sum: {:.2f}'.format(hard_sample_count, hard_target_loss_sum, easy_sample_count, easy_target_loss_sum))
 
-            list_hard_sample_count.append(hard_sample_count)
-            list_easy_sample_count.append(easy_sample_count)
-            list_hard_sample_sum.append(hard_target_loss_sum)
-            list_easy_sample_sum.append(easy_target_loss_sum)
+                list_hard_sample_count.append(hard_sample_count)
+                list_easy_sample_count.append(easy_sample_count)
+                list_hard_sample_sum.append(hard_target_loss_sum)
+                list_easy_sample_sum.append(easy_target_loss_sum)
 
         self.train_time = time.time() - start_time
 
-        print('list_hard_sample_count', list_hard_sample_count)
-        print('list_easy_sample_count', list_easy_sample_count)
-        print('list_hard_sample_sum', list_hard_sample_sum)
-        print('list_easy_sample_sum', list_easy_sample_sum)
-        list_hard_sample_count = np.array(list_hard_sample_count)
-        list_easy_sample_count = np.array(list_easy_sample_count)
-        list_hard_sample_sum = np.array(list_hard_sample_sum)
-        list_easy_sample_sum = np.array(list_easy_sample_sum)
-        
-        
+        if self.debug:
+            print('list_hard_sample_count', list_hard_sample_count)
+            print('list_easy_sample_count', list_easy_sample_count)
+            print('list_hard_sample_sum', list_hard_sample_sum)
+            print('list_easy_sample_sum', list_easy_sample_sum)
+            list_hard_sample_count = np.array(list_hard_sample_count)
+            list_easy_sample_count = np.array(list_easy_sample_count)
+            list_hard_sample_sum = np.array(list_hard_sample_sum)
+            list_easy_sample_sum = np.array(list_easy_sample_sum)
 
         return net
 
@@ -284,33 +298,19 @@ class BiasedADTrainer(BaseTrainer):
         # zero = torch.zeros(self.batch_size, device=self.device)
 
         net.eval()
-        output_list = []
         with torch.no_grad():
-            for data in train_loader:
-                # get the inputs of the batch
-                inputs, labels, semi_targets = data
+            inputs = train_loader.dataset.data[np.where(train_loader.dataset.semi_targets == -2)[0]]
+            if isinstance(inputs, np.ndarray):
+                inputs = torch.Tensor(inputs)
                 inputs = inputs.to(self.device)
-                if self.has_non_target_flag:
-                    if inputs[semi_targets == -2].shape[0] != 0:
-                        outputs = net(inputs[semi_targets == -2])
-                        n_samples += torch.sum(semi_targets == -2).item()
-                        c += torch.sum(outputs, dim=0)
-                else:   # if there's no non-target sample
-                    outputs = net(inputs[semi_targets == 0])
-                    output_list.append(outputs)
+            else:
+                inputs = inputs.float().to(self.device)
+            outputs = net(inputs)
+            c = torch.sum(outputs, dim=0)
+            c /= outputs.shape[0]
         
-        if self.has_non_target_flag:
-            c /= n_samples
-            idx = None
-        else:
-            writer = writer2txt()
-            output_list = torch.cat(output_list)
-            dist_to_c = torch.sum((output_list - self.c) ** 2, dim=1)
-            
-            idx = torch.argsort(dist_to_c, descending = True)[:self.sample_count]
-            c = torch.mean(output_list[idx], dim=0)
-        # If c_i is too close to 0, set to +-eps. Reason: a zero unit can be trivially matched with zero weights.
-        c[(abs(c) < eps) & (c < 0)] = -eps
-        c[(abs(c) < eps) & (c > 0)] = eps
+            # If c_i is too close to 0, set to +-eps. Reason: a zero unit can be trivially matched with zero weights.
+            c[(abs(c) < eps) & (c < 0)] = -eps
+            c[(abs(c) < eps) & (c > 0)] = eps
 
-        return c, idx
+        return c

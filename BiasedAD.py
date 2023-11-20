@@ -10,9 +10,8 @@ from collections import Counter
 
 class BiasedAD(object):
 
-    def __init__(self, eta_0: float = 1.0, eta_1: float = 1.0, eta_2: float = 2.0, model_type: str = "BiasedAD", update_anchor=None):
+    def __init__(self, eta_0: float = 1.0, eta_1: float = 1.0, eta_2: float = 2.0, model_type: str = "BiasedAD", update_anchor=None, debug=False, update_epoch = None):
         """Inits BAD with hyperparameter eta."""
-        
         self.eta_0 = eta_0
         self.eta_1 = eta_1
         self.eta_2 = eta_2
@@ -20,6 +19,8 @@ class BiasedAD(object):
         self.anchor = None 
         self.model_type = model_type
         self.update_anchor = update_anchor
+        self.debug = debug
+        self.update_epoch = update_epoch
 
         self.net_name = None
         self.net = None  # neural network phi
@@ -60,12 +61,20 @@ class BiasedAD(object):
         if self.model_type == "BiasedAD":
             self.trainer = BiasedADTrainer(self.c, self.anchor, self.eta_0, self.eta_1, self.eta_2, optimizer_name=optimizer_name, lr=lr, n_epochs=n_epochs,
                                     lr_milestones=lr_milestones, batch_size=batch_size, weight_decay=weight_decay,
-                                    device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count)
+                                    device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count, debug = self.debug)
         elif self.model_type == "BiasedADM":
             self.trainer = BiasedADMTrainer(self.c, self.anchor, self.eta_0, self.eta_1, self.eta_2, optimizer_name=optimizer_name, lr=lr, n_epochs=n_epochs,
                                     lr_milestones=lr_milestones, batch_size=batch_size, weight_decay=weight_decay,
-                                    device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count, update_anchor=self.update_anchor)
-        
+                                    device=device, n_jobs_dataloader=n_jobs_dataloader, sample_count=sample_count, update_anchor=self.update_anchor, debug = self.debug, update_epoch = self.update_epoch)
+        # run time statistics
+
+        # from line_profiler import LineProfiler
+        # lp = LineProfiler()
+        # lp.add_function(self.trainer.init_and_update_center_anchor)
+        # lp_wrapper  = lp(self.trainer.train)
+        # self.net = lp_wrapper(dataset, self.net)
+        # lp.print_stats()
+
         # Get the model
         self.net = self.trainer.train(dataset, self.net)
         self.results['train_time'] = self.trainer.train_time
