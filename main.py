@@ -277,7 +277,7 @@ for i in range(args.times):
         np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
     else:
         # output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
-        output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},,model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
+        output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
         writer.set_output_name(output_name)
         writer.set_file_save_path(file_save_path)
         writer.set_path("{}/{}.txt".format(file_save_path, output_name), "./log/{}_log/{}".format(args.dir_path.split("/")[-1], output_name))

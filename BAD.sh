@@ -86,16 +86,16 @@ exec -a "BAD_nb15_3——100" python main.py --model_type BiasedAD --dir_path ./
 wait
 
 # 不同eta0测试
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 2&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 5&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 10&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 20&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 30&
+exec -a "BAD_nb15_eta0_2" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 2&
+exec -a "BAD_nb15_eta0_5" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 5&
+exec -a "BAD_nb15_eta0_10" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 10&
+exec -a "BAD_nb15_eta0_20" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 20&
+exec -a "BAD_nb15_eta0_30" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 30&
 wait
 
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 40&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 50&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 100&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 200&
-exec -a "BAD_nb15" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 500&
+exec -a "BAD_nb15_eta0_40" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 40&
+exec -a "BAD_nb15_eta0_50" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 50&
+exec -a "BAD_nb15_eta0_100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 100&
+exec -a "BAD_nb15_eta0_200" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 200&
+exec -a "BAD_nb15_eta0_500" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 500&
 
