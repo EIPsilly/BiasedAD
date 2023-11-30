@@ -1,0 +1,13 @@
+__pycache__
+*.sh
+result
+check
+log
+data
+*.out
+.vscode
+*.txt
+analysis
+!BADM.sh
+!BAD.sh
+heap
