@@ -19,7 +19,7 @@ exec -a "BAD_SQB" python main.py --model_type BiasedAD --dir_path ./result/BAD_2
 
 wait
 
-# contamination
+# contamination Figure 6
 exec -a "BAD_nb15_contamination_2" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 1_Unlabelled_data --gpu 2 --random_seed 0&
 exec -a "BAD_nb15_contamination_4" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 2_Unlabelled_data --gpu 2 --random_seed 0&
 exec -a "BAD_nb15_contamination_6" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 3_Unlabelled_data --gpu 2 --random_seed 0&
@@ -30,16 +30,18 @@ exec -a "BAD_nb15_contamination_14" python main.py --model_type BiasedAD --dir_p
 wait
 
 # BAD nb15 不同target类
-exec -a "BAD_DoS" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class DoS&
-exec -a "BAD_Generic" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class Generic&
-exec -a "BAD_Backdoor" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class Backdoor&
-exec -a "BAD_DoS_Generic" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class DoS Generic&
-exec -a "BAD_DoS_Backdoor" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class DoS Backdoor&
-exec -a "BAD_Generic_Backdoor" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class Generic Backdoor&
+# exec -a "BAD_DoS" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class DoS&
+# exec -a "BAD_Generic" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class Generic&
+# exec -a "BAD_Backdoor" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class Backdoor&
+# exec -a "BAD_DoS_Generic" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class DoS Generic&
+# exec -a "BAD_DoS_Backdoor" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class DoS Backdoor&
+# exec -a "BAD_Generic_Backdoor" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_target_class_num --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_target_class Generic Backdoor&
 
-wait
+# wait
 
-# BAD 不同low和high数量
+
+# BAD 不同target数量 Figure5 A 3*1 3*10 3*50 3*100 Figure5 A
+# BAD 不同low和high数量 Figure5 B
 exec -a "BAD_nb15_1_1" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low_high --dataset_name nb15 --gpu 2 --random_seed 0 --s_non_target 1 --s_target 1&
 exec -a "BAD_nb15_1_10" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low_high --dataset_name nb15 --gpu 2 --random_seed 0 --s_non_target 1 --s_target 10&
 exec -a "BAD_nb15_1_50" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low_high --dataset_name nb15 --gpu 2 --random_seed 0 --s_non_target 1 --s_target 50&
@@ -62,7 +64,7 @@ exec -a "BAD_nb15_100_10" python main.py --model_type BiasedAD --dir_path ./resu
 exec -a "BAD_nb15_100_50" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low_high --dataset_name nb15 --gpu 2 --random_seed 0 --s_non_target 100 --s_target 50&
 exec -a "BAD_nb15_100_100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low_high --dataset_name nb15 --gpu 2 --random_seed 0 --s_non_target 100 --s_target 100&
 
-# non-target 个数 和 class数量
+# non-target 个数 和 class数量 Figure5 C
 exec -a "BAD_nb15_1_1" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 1 --s_non_target 1&
 exec -a "BAD_nb15_2_1" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 2 --s_non_target 1&
 wait
@@ -80,12 +82,12 @@ exec -a "BAD_nb15_2_50" python main.py --model_type BiasedAD --dir_path ./result
 exec -a "BAD_nb15_3_50" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 3 --s_non_target 50&
 exec -a "BAD_nb15_4_50" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 4 --s_non_target 50&
 
-exec -a "BAD_nb15_1——100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 1 --s_non_target 100&
-exec -a "BAD_nb15_2——100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 2 --s_non_target 100&
-exec -a "BAD_nb15_3——100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 3 --s_non_target 100&
+exec -a "BAD_nb15_1_100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 1 --s_non_target 100&
+exec -a "BAD_nb15_2_100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 2 --s_non_target 100&
+exec -a "BAD_nb15_3_100" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_low --dataset_name nb15 --gpu 2 --random_seed 0 --nb15_non_target_class_num 3 --s_non_target 100&
 wait
 
-# 不同eta0测试
+# 不同eta0测试 Figure8 A
 exec -a "BAD_nb15_eta0_2" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 2&
 exec -a "BAD_nb15_eta0_5" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 5&
 exec -a "BAD_nb15_eta0_10" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/nb15_eta0 --dataset_name nb15 --gpu 2 --random_seed 0 --eta_0 10&

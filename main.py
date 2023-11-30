@@ -65,14 +65,6 @@ args.add_argument("--sqb_test_frac" , type=int, default = None)
 args.add_argument("--update_anchor" , type=str, default = "default")
 args.add_argument("--update_epoch" , type=int, default = 10)
 
-# args = args.parse_args(["--dir_path","./result/DEBUG", "--gpu", "0","--ae_epoch", "1", "--times", "1" , "--debug", False, "--model_type", "BiasedADM", "--update_anchor", "iforest", "--sample_count", "1500"])
-
-# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./check/fashionmnist_BAD", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "6", "--gpu", "3", "--random_seed", "0","--ae_epoch", "1"])
-
-# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BAD_eta", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0", "--eta_1", "1", "--eta_2", "1","--ae_epoch", "1"])
-
-# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_epoch_20231116", "--dataset_name", "nb15", "--gpu", "2", "--sample_count", "1500", "--random_seed", "0", "--update_anchor", "update_previous_epoch", "--update_epoch", "1", "--ae_epoch", "1"])
-
 args = args.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
@@ -277,7 +269,8 @@ for i in range(args.times):
         np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
     else:
         # output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
-        output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
+        # output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
+        output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},sample_count={args.sample_count}'
         writer.set_output_name(output_name)
         writer.set_file_save_path(file_save_path)
         writer.set_path("{}/{}.txt".format(file_save_path, output_name), "./log/{}_log/{}".format(args.dir_path.split("/")[-1], output_name))
@@ -291,6 +284,6 @@ for i in range(args.times):
                     n_jobs_dataloader=0,
                     sample_count=args.sample_count)
         model.test(dataset, device=args.device, n_jobs_dataloader=0)
-    with open(f'result/running_time_20231118/{args.model_type}_{args.dataset_name}.txt' , "a", encoding="utf-8") as f:
-        f.write(f'ae_train_time={model.ae_results["train_time"]},SAD_train_time={model.results["train_time"]},total_train_time={model.results["train_time"] + model.ae_results["train_time"]}')
-        f.write("\n")
+    # with open(f'result/running_time_20231118/{args.model_type}_{args.dataset_name}.txt' , "a", encoding="utf-8") as f:
+    #     f.write(f'ae_train_time={model.ae_results["train_time"]},SAD_train_time={model.results["train_time"]},total_train_time={model.results["train_time"] + model.ae_results["train_time"]}')
+    #     f.write("\n")
