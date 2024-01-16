@@ -29,7 +29,7 @@ args.add_argument('--dataset_name', type=str, default="nb15")
 args.add_argument('--device', type=str, default="cuda")
 args.add_argument('--gpu', type=str, default="3")
 args.add_argument('--intermediate_flag', type=bool, default=False)
-args.add_argument("--random_seed" , type=int, default = None)
+args.add_argument("--random_seed" , type=int, default = 0)
 args.add_argument('--debug', type=bool, default=False)
 
 args.add_argument("--lr" , type=float, default = None)
@@ -65,7 +65,10 @@ args.add_argument("--sqb_test_frac" , type=int, default = None)
 args.add_argument("--update_anchor" , type=str, default = "default")
 args.add_argument("--update_epoch" , type=int, default = 10)
 
-args = args.parse_args()
+# args = args.parse_args()
+args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "0", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True"])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/SQB", "--dataset_name", "SQB", "--gpu", "0", "--sample_count", "200", "--random_seed", "0",])
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
@@ -265,8 +268,9 @@ for i in range(args.times):
         train_loader, test_loader = dataset.loaders(batch_size=128, drop_last_train = False)
         train_data_input, train_data_label, train_data_semi_target = model.intermediate_result(train_loader)
         test_data_input, test_data_label, test_data_semi_target = model.intermediate_result(test_loader)
-        np.savez(file_save_path + "/" + file_name + "train_data.npz", train_data_input = train_data_input, train_data_label = train_data_label, train_data_semi_target = train_data_semi_target)
-        np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
+        np.savez("./temp/fmnist_data_for_BADM.npz" , x_train = train_data_input, y_train = train_data_label, target_y_train = train_data_semi_target, x_test = test_data_input, y_test = test_data_label, target_y_test = test_data_semi_target)
+        # np.savez(file_save_path + "/" + file_name + "train_data.npz", train_data_input = train_data_input, train_data_label = train_data_label, train_data_semi_target = train_data_semi_target)
+        # np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
     else:
         # output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
         # output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'

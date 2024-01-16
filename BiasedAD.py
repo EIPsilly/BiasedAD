@@ -169,7 +169,7 @@ class BiasedAD(object):
             intermediate_data_semi_target = []
 
             for data in data_loader:
-                inputs, labels, semi_targets = data
+                idx, inputs, labels, semi_targets, sampled = data
                 inputs = inputs.to(device)
                 outputs = net(inputs)
                 

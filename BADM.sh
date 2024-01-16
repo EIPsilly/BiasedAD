@@ -44,9 +44,11 @@ exec -a "BADM_nb15_contamination_2" python main.py --model_type BiasedADM --dir_
 exec -a "BADM_nb15_contamination_4" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 2_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
 exec -a "BADM_nb15_contamination_6" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 3_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
 exec -a "BADM_nb15_contamination_8" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 4_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
+wait
 exec -a "BADM_nb15_contamination_10" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 5_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
 exec -a "BADM_nb15_contamination_12" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 6_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
 exec -a "BADM_nb15_contamination_14" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 7_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
+exec -a "BADM_nb15_contamination_16" python main.py --model_type BiasedADM --dir_path ./result/BADM_20231118/contamination --dataset_name 8_Unlabelled_data --gpu 2 --sample_count 1000 --random_seed 0 &
 wait
 
 # BADM用于计算anchor的采样个数

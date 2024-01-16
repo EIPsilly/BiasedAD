@@ -24,9 +24,11 @@ exec -a "BAD_nb15_contamination_2" python main.py --model_type BiasedAD --dir_pa
 exec -a "BAD_nb15_contamination_4" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 2_Unlabelled_data --gpu 2 --random_seed 0&
 exec -a "BAD_nb15_contamination_6" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 3_Unlabelled_data --gpu 2 --random_seed 0&
 exec -a "BAD_nb15_contamination_8" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 4_Unlabelled_data --gpu 2 --random_seed 0&
+wait
 exec -a "BAD_nb15_contamination_10" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 5_Unlabelled_data --gpu 2 --random_seed 0&
 exec -a "BAD_nb15_contamination_12" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 6_Unlabelled_data --gpu 2 --random_seed 0&
 exec -a "BAD_nb15_contamination_14" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 7_Unlabelled_data --gpu 2 --random_seed 0&
+exec -a "BAD_nb15_contamination_16" python main.py --model_type BiasedAD --dir_path ./result/BAD_20231118/contamination --dataset_name 8_Unlabelled_data --gpu 2 --random_seed 0&
 wait
 
 # BAD nb15 不同target类
