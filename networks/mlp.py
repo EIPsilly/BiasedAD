@@ -60,6 +60,20 @@ class MLP_Autoencoder(BaseNet):
         x = self.decoder(x)
         return x
 
+class MLP_CL(BaseNet):
+
+    def __init__(self, x_dim, h_dims=[128, 64], rep_dim=32, bias=False):
+        super().__init__()
+
+        self.rep_dim = rep_dim
+        self.encoder = MLP(x_dim, h_dims, rep_dim, bias)
+        self.prototype = nn.utils.weight_norm(nn.Linear(rep_dim, 3, bias=False))
+        self.prototype.weight_g.data.fill_(1)
+        self.prototype.weight_g.requires_grad = False
+
+    def forward(self, x):
+        x = self.encoder(x)
+        return x
 
 class Linear_BN_leakyReLU(nn.Module):
     """

@@ -1,5 +1,5 @@
 from .fmnist_LeNet import FashionMNIST_LeNet, FashionMNIST_LeNet_Autoencoder
-from .mlp import MLP, MLP_Autoencoder
+from .mlp import MLP, MLP_Autoencoder, MLP_CL
 
 
 def build_network(net_name, ae_net=None):
@@ -41,3 +41,23 @@ def build_autoencoder(net_name):
         ae_net = MLP_Autoencoder(x_dim=183, h_dims=[128, 64], rep_dim=32, bias=False)
 
     return ae_net
+
+
+def build_CLnetwork(net_name, ae_net=None):
+    """Builds the neural network."""
+
+    implemented_networks = ('fmnist_LeNet', "mlp_for_nb15", "mlp_for_sqb", "artificial")
+    assert net_name in implemented_networks
+
+    net = None
+
+    if net_name == 'fmnist_LeNet':
+        net = FashionMNIST_LeNet()
+
+    if net_name == 'mlp_for_nb15':
+        net = MLP_CL(x_dim=196, h_dims=[128, 64], rep_dim=32, bias=False)
+
+    if net_name == 'mlp_for_sqb':
+        net = MLP_CL(x_dim=183, h_dims=[128, 64], rep_dim=32, bias=False)
+
+    return net

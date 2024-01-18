@@ -1,7 +1,8 @@
 from optim.BiasedADTrainer import BiasedADTrainer
 from optim.BiasedADMTrainer import BiasedADMTrainer
-from networks.main import build_network, build_autoencoder
+from networks.main import build_network, build_autoencoder, build_CLnetwork
 from optim.AETrainer import AETrainer
+from optim.CLTrainer import CLTrainer
 import numpy as np
 import json
 import torch
@@ -10,7 +11,8 @@ from collections import Counter
 
 class BiasedAD(object):
 
-    def __init__(self, eta_0: float = 1.0, eta_1: float = 1.0, eta_2: float = 2.0, model_type: str = "BiasedAD", update_anchor=None, debug=False, update_epoch = None):
+    def __init__(self, args, eta_0: float = 1.0, eta_1: float = 1.0, eta_2: float = 2.0, model_type: str = "BiasedAD", update_anchor=None, debug=False, update_epoch = None, pre_train_type="CL"):
+        self.args = args
         """Inits BAD with hyperparameter eta."""
         self.eta_0 = eta_0
         self.eta_1 = eta_1
@@ -21,6 +23,7 @@ class BiasedAD(object):
         self.update_anchor = update_anchor
         self.debug = debug
         self.update_epoch = update_epoch
+        self.pre_train_type = pre_train_type
 
         self.net_name = None
         self.net = None  # neural network phi
@@ -93,8 +96,39 @@ class BiasedAD(object):
         self.results['test_scores'] = self.trainer.test_scores
         
         writer2txt().write_txt('Test AUC: {:.2f}% | Test PRC: {:.2f}%'.format(100. * self.results['test_auc'], 100. * self.results['test_auc_pr']))
+    
+    def CL_pretrain(self, dataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
+                 lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
+                 n_jobs_dataloader: int = 0):
+        """Pretrains the weights for the BAD network phi via autoencoder."""
 
-    def pretrain(self, dataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
+        # Set autoencoder network
+        self.ae_net = build_CLnetwork(self.net_name)
+        if self.args.net_name == "fmnist_LeNet":
+            rep_dim = 64
+        else:
+            rep_dim = 23
+        # Train
+        self.ae_optimizer_name = optimizer_name
+        self.ae_trainer = CLTrainer(self.args, optimizer_name, lr=lr, n_epochs=n_epochs, lr_milestones=lr_milestones,
+                                    batch_size=batch_size, weight_decay=weight_decay, device=device,
+                                    n_jobs_dataloader=n_jobs_dataloader,rep_dim=rep_dim)
+        self.ae_net = self.ae_trainer.train(dataset, self.ae_net)
+
+        # Get train results
+        self.ae_results['train_time'] = self.ae_trainer.train_time
+
+        # Test
+        self.ae_trainer.test(dataset, self.ae_net)
+
+        # Get test results
+        self.ae_results['test_auc'] = self.ae_trainer.test_auc
+        self.ae_results['test_time'] = self.ae_trainer.test_time
+
+        # Initialize BAD network weights from pre-trained encoder
+        self.init_network_weights_from_pretraining()
+
+    def AE_pretrain(self, dataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
                  lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
                  n_jobs_dataloader: int = 0):
         """Pretrains the weights for the BAD network phi via autoencoder."""

@@ -25,6 +25,7 @@ from datasets.sqb_for_BADM import sqb_for_BADM
 args = argparse.ArgumentParser()
 args.add_argument('--model_type', type=click.Choice(["BiasedAD", "BiasedADM"]), default="BiasedAD")
 args.add_argument('--dir_path', type=str, default="./result/DEBUG")
+args.add_argument('--pre_train_type', type=str, default="CL")
 args.add_argument('--dataset_name', type=str, default="nb15")
 args.add_argument('--device', type=str, default="cuda")
 args.add_argument('--gpu', type=str, default="3")
@@ -66,7 +67,8 @@ args.add_argument("--update_anchor" , type=str, default = "default")
 args.add_argument("--update_epoch" , type=int, default = 10)
 
 # args = args.parse_args()
-args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "0", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True"])
+args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BADM_20240118/nb15", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "0", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True"])
 # args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0",])
 # args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/SQB", "--dataset_name", "SQB", "--gpu", "0", "--sample_count", "200", "--random_seed", "0",])
 
@@ -253,16 +255,27 @@ for i in range(args.times):
         os.makedirs("./log/{}_log".format(args.dir_path.split("/")[-1]))
 
     writer = writer2txt()    
-    
-    model = BiasedAD(args.eta_0, args.eta_1, args.eta_2, args.model_type, args.update_anchor, args.debug, args.update_epoch)
+    args.net_name = net_name
+    model = BiasedAD(args, args.eta_0, args.eta_1, args.eta_2, args.model_type, args.update_anchor, args.debug, args.update_epoch, args.pre_train_type)
     model.set_network(net_name)
-    model.pretrain(dataset, optimizer_name='adam',
-                    lr=args.ae_lr,
-                    n_epochs=args.ae_epoch,
-                    batch_size=args.ae_batch_size,
-                    weight_decay = args.ae_weight_decay,
-                    device=args.device,
-                    n_jobs_dataloader=0)
+    if args.pre_train_type == "AE":
+        model.AE_pretrain(dataset,
+                          optimizer_name='adam',
+                          lr=args.ae_lr,
+                          n_epochs=args.ae_epoch,
+                          batch_size=args.ae_batch_size,
+                          weight_decay = args.ae_weight_decay,
+                          device=args.device,
+                          n_jobs_dataloader=0)
+    elif args.pre_train_type == "CL":
+        model.CL_pretrain(dataset,
+                          optimizer_name='adam',
+                          lr=args.ae_lr,
+                          n_epochs=args.ae_epoch,
+                          batch_size=args.ae_batch_size,
+                          weight_decay = args.ae_weight_decay,
+                          device=args.device,
+                          n_jobs_dataloader=0)
     if args.intermediate_flag:
         # save the characterization obtained after AE pretrain
         train_loader, test_loader = dataset.loaders(batch_size=128, drop_last_train = False)
