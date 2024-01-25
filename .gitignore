@@ -12,3 +12,6 @@ analysis
 !BAD.sh
 heap
 temp
+*.pdf
+processed_data
+intermediate_results

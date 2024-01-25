@@ -245,8 +245,13 @@ class BiasedADTrainer(BaseTrainer):
         self.test_auc = roc_auc_score(labels, scores)
         precision, recall, threshold = precision_recall_curve(labels, scores)
         self.test_auc_pr = auc(recall, precision)
-        plt.plot(recall, precision, marker='.', label='---')
-
+        # plt.plot(recall, precision, marker='.', label='---')
+        # plt.cla()
+        # plt.plot(recall, precision)
+        # plt.savefig("1.pdf",format="pdf")
+        temp = (2 * precision * recall) / (precision + recall)
+        print(np.nanmax(temp))
+        np.nanargmax(temp)
         fpr, tpr, thresholds = roc_curve(labels, scores)
         optimal_th, optimal_point = Find_Optimal_Cutoff(TPR=tpr, FPR=fpr, threshold=thresholds)
 

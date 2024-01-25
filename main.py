@@ -23,7 +23,7 @@ from datasets.sqb import SQBDataset
 from datasets.sqb_for_BADM import sqb_for_BADM
 
 args = argparse.ArgumentParser()
-args.add_argument('--model_type', type=click.Choice(["BiasedAD", "BiasedADM"]), default="BiasedAD")
+args.add_argument('--model_type', type=click.Choice(["BiasedAD", "BiasedADM", "Gcon"]), default="BiasedAD")
 args.add_argument('--dir_path', type=str, default="./result/DEBUG")
 args.add_argument('--dataset_name', type=str, default="nb15")
 args.add_argument('--device', type=str, default="cuda")
@@ -49,6 +49,8 @@ args.add_argument('--eta_1', type=int, default=None)
 args.add_argument('--eta_2', type=int, default=None)
 
 # The follow three options are useful when the dataset is the fashionMNIST dataset
+args.add_argument("--contamination_for_FMNIST", type=float, default=0.02)
+args.add_argument("--labeled_target_outlier_number", type=int, default=100)
 args.add_argument("--normal_class" , type=int, default = 4)
 args.add_argument("--non_target_outlier_class" , type=int, default = 0)
 args.add_argument("--target_outlier_class" , type=int, default = 6)
@@ -66,9 +68,11 @@ args.add_argument("--update_anchor" , type=str, default = "default")
 args.add_argument("--update_epoch" , type=int, default = 10)
 
 # args = args.parse_args()
-args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "0", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True"])
-# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0",])
-# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20231118/SQB", "--dataset_name", "SQB", "--gpu", "0", "--sample_count", "200", "--random_seed", "0",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "4", "--target_outlier_class", "6", "--gpu", "2", "--random_seed", "0", "--contamination_for_FMNIST", "0.02", "--labeled_target_outlier_number", "1"])
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BADM_20240124/nb15", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0",])
+args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "4", "--target_outlier_class", "6", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True", "--times", "1", "--contamination_for_FMNIST", "0.02", "--labeled_target_outlier_number", "100"])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/SQB", "--dataset_name", "SQB", "--gpu", "0", "--sample_count", "200", "--random_seed", "0",])
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
@@ -175,6 +179,13 @@ for i in range(args.times):
             default_eta_1 = 1
             default_eta_2 = 1
         elif args.model_type == "BiasedADM":
+            labeled_target_outlier_number = args.labeled_target_outlier_number
+            contaminationRate = args.contamination_for_FMNIST
+
+            if args.contamination_for_FMNIST != 0.02:
+                unlabeled_target_outlier_number = (unlabeled_normal_number + labeled_normal_number + unlabeled_non_target_outlier_number + labeled_non_target_outlier_number + labeled_target_outlier_number) * args.contamination_for_FMNIST / (1 - args.contamination_for_FMNIST)
+                unlabeled_target_outlier_number = int(round(unlabeled_target_outlier_number))
+
             dataset = fashionmnist_for_BADM("./data",
                                             args.normal_class,
                                             unlabeled_normal_number,
@@ -202,7 +213,8 @@ for i in range(args.times):
         else:
             file_save_path = args.dir_path + "/" + str(args.normal_class) + "x" + str(args.target_outlier_class)
 
-        file_name = "normal=" + str(args.normal_class) + ",non_target=" + str(args.non_target_outlier_class) + ",target=" + str(args.target_outlier_class) + ","
+        # file_name = "normal=" + str(args.normal_class) + ",non_target=" + str(args.non_target_outlier_class) + ",target=" + str(args.target_outlier_class) + ","
+        file_name = f"normal={args.normal_class},non_target={args.non_target_outlier_class},target={args.target_outlier_class},labeled_target_outlier_number={args.labeled_target_outlier_number},"
         args.ae_lr = 0.0001 if args.ae_lr is None else args.ae_lr
         args.ae_batch_size = 128 if args.ae_batch_size is None else args.ae_batch_size
         args.ae_epoch = 10 if args.ae_epoch is None else args.ae_epoch
@@ -254,6 +266,91 @@ for i in range(args.times):
 
     writer = writer2txt()    
     
+    # from sklearn.ensemble import RandomForestClassifier #集成学习中的随机森林
+    # from sklearn.metrics import auc, roc_curve, precision_recall_curve, roc_auc_score,confusion_matrix, classification_report, f1_score
+    # import seaborn as sns
+
+    # x_train = dataset.train_set.data
+    # y_train = dataset.train_set.labels
+    # target_y_train = dataset.train_set.semi_targets
+
+    # x_test = dataset.test_set.data
+    # y_test = dataset.test_set.labels
+    # target_y_test = dataset.test_set.semi_targets
+
+    # random.seed(args.random_seed)
+    # normal_samples = x_train[random.sample(np.where(target_y_train==0)[0].tolist(), 400)]
+    # non_target_samples = x_train[np.where(target_y_train==-2)[0]]
+    # target_samples = x_train[np.where(target_y_train==-1)[0]]
+    
+    # # 三类
+    # rf_x_train = np.concatenate([normal_samples, non_target_samples, target_samples], axis=0)
+    # rf_y_train = np.concatenate([np.zeros(normal_samples.shape[0]),
+    #                              np.zeros(non_target_samples.shape[0]) - 2,
+    #                              np.zeros(target_samples.shape[0]) - 1,], axis=0)#建立模型
+    # rfc = RandomForestClassifier(random_state=0)
+    # rfc = rfc.fit(rf_x_train, rf_y_train)
+    # y_pred = rfc.predict(x_test)
+    # print(Counter(y_pred))
+    # print(Counter(target_y_test))
+    # y_prob = rfc.predict_proba(x_test)
+
+    # cm = confusion_matrix(target_y_test, y_pred)
+    # print(cm)
+    # print(classification_report(target_y_test, y_pred))
+
+    # precision, recall, threshold = precision_recall_curve(y_test, y_prob[:,1])
+    # rf_test_auc_pr = auc(recall, precision)
+    # print(rf_test_auc_pr)
+
+    # 两类
+    # rf_x_train = np.concatenate([normal_samples, target_samples], axis=0)
+    # rf_y_train = np.concatenate([np.zeros(normal_samples.shape[0]),
+    #                              np.zeros(target_samples.shape[0]) + 1,], axis=0)#建立模型
+    # rfc = RandomForestClassifier(random_state=0)
+    # rfc = rfc.fit(rf_x_train, rf_y_train)
+    # y_pred = rfc.predict(x_test)
+    # print(Counter(y_pred))
+    # print(Counter(y_test))
+    # y_prob = rfc.predict_proba(x_test)
+
+    # cm = confusion_matrix(y_test, y_pred)
+    # print(cm)
+    # print(classification_report(y_test, y_pred))
+
+    # precision, recall, threshold = precision_recall_curve(y_test, y_prob[:,1])
+    # rf_test_auc_pr = auc(recall, precision)
+    # print(rf_test_auc_pr)
+    
+    if args.model_type == "BiasedADM":
+        x_train = np.array(dataset.train_set.data)
+        y_train = np.array(dataset.train_set.labels)
+        target_y_train = np.array(dataset.train_set.semi_targets)
+        x_test = np.array(dataset.test_set.data)
+        y_test = np.array(dataset.test_set.labels)
+        target_y_test = np.array(dataset.test_set.semi_targets)
+
+        if re.search("Unlabelled_data", args.dataset_name):
+            npz_name = f"dataset_name={args.dataset_name}.npz"
+        elif args.dataset_name == "nb15":
+            npz_name = f"dataset_name={args.dataset_name},s_non_target={args.s_non_target},s_target={args.s_target},nb15_non_target_class_num={args.nb15_non_target_class_num},nb15_target_class={args.nb15_target_class}.npz"
+        elif args.dataset_name == "fashionmnist":
+            npz_name = f"dataset_name={args.dataset_name},normal_class={args.normal_class},non_target_outlier_class={args.non_target_outlier_class},target_outlier_class={args.target_outlier_class},contamination_for_FMNIST={args.contamination_for_FMNIST},labeled_target_outlier_number={args.labeled_target_outlier_number}.npz"
+            y_train = np.array(list(map(lambda x: int(x == args.target_outlier_class), y_train)))
+            y_test = np.array(list(map(lambda x: int(x == args.target_outlier_class), y_test)))
+        elif args.dataset_name == "SQB":
+            npz_name = f"dataset_name={args.dataset_name}.npz"
+        
+        np.savez(f"./processed_data/{npz_name}",
+                 x_train=x_train,
+                 y_train=y_train,
+                 target_y_train=target_y_train,
+                 x_test=x_test,
+                 y_test=y_test,
+                 target_y_test=target_y_test)
+    
+    
+    
     model = BiasedAD(args.eta_0, args.eta_1, args.eta_2, args.model_type, args.update_anchor, args.debug, args.update_epoch)
     model.set_network(net_name)
     model.pretrain(dataset, optimizer_name='adam',
@@ -268,7 +365,8 @@ for i in range(args.times):
         train_loader, test_loader = dataset.loaders(batch_size=128, drop_last_train = False)
         train_data_input, train_data_label, train_data_semi_target = model.intermediate_result(train_loader)
         test_data_input, test_data_label, test_data_semi_target = model.intermediate_result(test_loader)
-        np.savez("./temp/fmnist_data_for_BADM.npz" , x_train = train_data_input, y_train = train_data_label, target_y_train = train_data_semi_target, x_test = test_data_input, y_test = test_data_label, target_y_test = test_data_semi_target)
+        npz_name = f'./intermediate_results/fmnist_data_for_BADM_{args.normal_class}{args.non_target_outlier_class}{args.target_outlier_class}_{args.contamination_for_FMNIST}_{args.labeled_target_outlier_number}.npz'
+        np.savez(npz_name , x_train = train_data_input, y_train = train_data_label, target_y_train = train_data_semi_target, x_test = test_data_input, y_test = test_data_label, target_y_test = test_data_semi_target)
         # np.savez(file_save_path + "/" + file_name + "train_data.npz", train_data_input = train_data_input, train_data_label = train_data_label, train_data_semi_target = train_data_semi_target)
         # np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
     else:

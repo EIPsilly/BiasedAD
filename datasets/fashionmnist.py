@@ -137,7 +137,11 @@ class FashionMNIST_Dataset(TorchvisionDataset):
         labeled_normal_idx, _ = self.get_random_sample(test_set, normal_class, test_normal, 0, self.random_seed + 3)
         labeled_non_target_outlier_idx, _ = self.get_random_sample(test_set, non_target_outlier_class, test_non_target_outlier, 0, self.random_seed + 4)
         labeled_target_outlier_idx, _ = self.get_random_sample(test_set, target_outlier_class, test_target_outlier, 0, self.random_seed + 5)
-    
+
+        test_set.semi_targets[labeled_normal_idx] = 0
+        test_set.semi_targets[labeled_non_target_outlier_idx] = -2
+        test_set.semi_targets[labeled_target_outlier_idx] = -1
+
         print("=========test=========")
         print("labeled_normal_idx:\t",len(labeled_normal_idx))
         print("labeled_non_target_outlier_idx:\t",len(labeled_non_target_outlier_idx))
