@@ -163,5 +163,3 @@ class FashionMNIST_Dataset(TorchvisionDataset):
         self.test_set = MyDataset(x_test, y_test, target_y_test, transform=transform, target_transform=target_transform)
 
 
-if __name__ == "__main__":
-    FashionMNIST_Dataset("./data",4,5000,0,1000,    6,50,100,100,           0,50,100,100)

@@ -33,6 +33,7 @@ class MyDataset(Dataset):
 class nb15_for_BADM():
 
     def __init__(self, args):
+        s_normal = args.s_normal
         s_non_target = args.s_non_target
         s_target = args.s_target
         nb15_non_target_class_num = args.nb15_non_target_class_num
@@ -90,6 +91,9 @@ class nb15_for_BADM():
         # train
 
         # unlabeled
+        np.random.seed(42)
+        idx = np.random.choice(Unlabelled_mix.index, int(Unlabelled_mix.shape[0] * (1 - s_normal)), False)
+        Unlabelled_mix.drop(index=idx,inplace=True)
         x_u = Unlabelled_mix.drop(['attack_cat', 'label'], axis=1).values
         x_u = x_u.astype(np.float32)
         x_u[np.isnan(x_u)] = 0

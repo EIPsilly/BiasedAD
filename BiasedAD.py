@@ -91,8 +91,9 @@ class BiasedAD(object):
         self.results['test_time'] = self.trainer.test_time
         self.results['test_auc_pr'] = self.trainer.test_auc_pr
         self.results['test_scores'] = self.trainer.test_scores
+        self.results['test_f1'] = self.trainer.f1
         
-        writer2txt().write_txt('Test AUC: {:.2f}% | Test PRC: {:.2f}%'.format(100. * self.results['test_auc'], 100. * self.results['test_auc_pr']))
+        writer2txt().write_txt('Test AUC: {:.2f}% | Test PRC: {:.2f}% | Test F1: {:.2f}'.format(100. * self.results['test_auc'], 100. * self.results['test_auc_pr'], self.results['test_f1'] * 100))
 
     def pretrain(self, dataset, optimizer_name: str = 'adam', lr: float = 0.001, n_epochs: int = 100,
                  lr_milestones: tuple = (), batch_size: int = 128, weight_decay: float = 1e-6, device: str = 'cuda',
@@ -169,7 +170,10 @@ class BiasedAD(object):
             intermediate_data_semi_target = []
 
             for data in data_loader:
-                idx, inputs, labels, semi_targets, sampled = data
+                if len(data) == 5:
+                    idx, inputs, labels, semi_targets, _ = data
+                if len(data) == 3:
+                    inputs, labels, semi_targets = data
                 inputs = inputs.to(device)
                 outputs = net(inputs)
                 

@@ -249,9 +249,9 @@ class BiasedADTrainer(BaseTrainer):
         # plt.cla()
         # plt.plot(recall, precision)
         # plt.savefig("1.pdf",format="pdf")
-        temp = (2 * precision * recall) / (precision + recall)
-        print(np.nanmax(temp))
-        np.nanargmax(temp)
+        self.f1 = np.nanmax((2 * precision * recall) / (precision + recall))
+        print(self.f1)
+        
         fpr, tpr, thresholds = roc_curve(labels, scores)
         optimal_th, optimal_point = Find_Optimal_Cutoff(TPR=tpr, FPR=fpr, threshold=thresholds)
 
@@ -264,10 +264,9 @@ class BiasedADTrainer(BaseTrainer):
         print('Test Loss: {:.6f}'.format(epoch_loss / n_batches))
         # print('Test AUC: {:.2f}%'.format(100. * self.test_auc))
         # print('Test AUC-PR: {:.2f}%'.format(100. * self.test_auc_pr))
-        print('Test AUC: {:.2f}% | Test PRC: {:.2f}%'.format(100. * self.test_auc, 100. * self.test_auc_pr))
-        
-
-        writer.log('Test AUC: {:.2f}% | Test PRC: {:.2f}%\n'.format(100. * self.test_auc, 100. * self.test_auc_pr))
+        # print('Test AUC: {:.2f}% | Test PRC: {:.2f}%'.format(100. * self.test_auc, 100. * self.test_auc_pr))
+        print('Test AUC: {:.2f}% | Test PRC: {:.2f}% | Test F1: {:.2f}'.format(100. * self.test_auc, 100. * self.test_auc_pr, self.f1 * 100))
+        writer.log('Test AUC: {:.2f}% | Test PRC: {:.2f}% | Test F1: {:.2f}'.format(100. * self.test_auc, 100. * self.test_auc_pr, self.f1 * 100))
 
 
         # print('Test Time: {:.3f}s'.format(self.`test_time))

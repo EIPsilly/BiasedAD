@@ -56,6 +56,7 @@ args.add_argument("--non_target_outlier_class" , type=int, default = 0)
 args.add_argument("--target_outlier_class" , type=int, default = 6)
 
 # The follow three options are useful when the dataset is the nb15 dataset with a fixed contamination ratio of 2%.
+args.add_argument("--s_normal" , type=float, default = 1.0)
 args.add_argument("--s_non_target" , type=int, default = 100)
 args.add_argument("--s_target" , type=int, default = 100)
 # Controls the number of non-target categories
@@ -67,20 +68,35 @@ args.add_argument("--sqb_test_frac" , type=int, default = None)
 args.add_argument("--update_anchor" , type=str, default = "default")
 args.add_argument("--update_epoch" , type=int, default = 10)
 
-# args = args.parse_args()
-# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "4", "--target_outlier_class", "6", "--gpu", "2", "--random_seed", "0", "--contamination_for_FMNIST", "0.02", "--labeled_target_outlier_number", "1"])
-# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BADM_20240124/nb15", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0",])
-args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "4", "--target_outlier_class", "6", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True", "--times", "1", "--contamination_for_FMNIST", "0.02", "--labeled_target_outlier_number", "100"])
-# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0",])
-# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240124/SQB", "--dataset_name", "SQB", "--gpu", "0", "--sample_count", "200", "--random_seed", "0",])
+args = args.parse_args()
+
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./kdd_results/BAD_20240201/nb15", "--dataset_name", "nb15", "--gpu", "1", "--random_seed", "0", "--s_normal", "0.01", "--s_non_target", "1", "--s_target", "1"])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./kdd_results/BADM_20240201/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0", "--s_normal", "0.01", "--s_target", "1",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./kdd_results/RF_20240201/nb15", "--dataset_name", "nb15", "--gpu", "3", "--sample_count", "1000", "--random_seed", "0", "--s_normal", "0.01", "--s_target", "1", "--times", "1",])
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./kdd_results/RF_20240201/nb15", "--dataset_name", "nb15", "--gpu", "2", "--random_seed", "0", "--s_normal", "0.01", "--s_non_target", "1", "--s_target", "1", "--times", "1",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./kdd_results/RF_20240201/nb15", "--dataset_name", "nb15", "--gpu", "3", "--sample_count", "1000", "--random_seed", "0", "--s_normal", "0.01", "--s_target", "1", "--times", "1",])
+
+
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240129/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "4", "--target_outlier_class", "6", "--gpu", "2", "--random_seed", "0"])
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BAD_20240129/nb15", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240129/nb15", "--dataset_name", "nb15", "--gpu", "0", "--sample_count", "1000", "--random_seed", "0",])
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240129/SQB", "--dataset_name", "SQB", "--gpu", "0", "--sample_count", "200", "--random_seed", "0",])
+
+# args = args.parse_args(["--model_type", "BiasedADM", "--dir_path", "./result/BADM_20240129/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "2", "--target_outlier_class", "0", "--gpu", "2", "--random_seed", "0", "--intermediate_flag", "True", "--times", "1", "--contamination_for_FMNIST", "0.02", "--labeled_target_outlier_number", "100"])
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BAD_20240129/fmnist", "--dataset_name", "fashionmnist", "--normal_class", "4", "--non_target_outlier_class", "4", "--target_outlier_class", "6", "--gpu", "3", "--random_seed", "0", "--intermediate_flag", "True", "--times", "1"])
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BAD_20240129/nb15", "--dataset_name", "nb15", "--gpu", "0", "--random_seed", "0", "--intermediate_flag", "True", "--times", "1"])
+# args = args.parse_args(["--model_type", "BiasedAD", "--dir_path", "./result/BAD_20240129/SQB", "--dataset_name", "SQB", "--gpu", "0", "--random_seed", "0", "--intermediate_flag", "True", "--times", "1", "--sqb_test_frac", "100"])
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
 file_save_path = args.dir_path
 
+if args.intermediate_flag:
+    args.times = 1
+
 for i in range(args.times):
     contaminationRate = 2
-
+    
     #The contaminated dataset name of nb-15 is "7_Unlabelled_data," where the number 7 indicates a contamination ratio of 7*2=14%.
     if re.search("Unlabelled_data", args.dataset_name):
         file_name = "dataset=NB15_contamination"
@@ -121,7 +137,7 @@ for i in range(args.times):
             default_eta_1 = 1
             default_eta_2 = 1
         net_name = 'mlp_for_nb15'
-        file_name = "s_non_target=" + str(args.s_non_target) + ",s_target=" + str(args.s_target) + ",nb15_non_target_class_num=" +str(args.nb15_non_target_class_num) + "," + f'nb15_target_class={"_".join(args.nb15_target_class)},'
+        file_name = f"s_normal={args.s_normal}," + "s_non_target=" + str(args.s_non_target) + ",s_target=" + str(args.s_target) + ",nb15_non_target_class_num=" +str(args.nb15_non_target_class_num) + "," + f'nb15_target_class={"_".join(args.nb15_target_class)},'
         args.ae_lr = 0.0001 if args.ae_lr is None else args.ae_lr
         args.ae_batch_size = 128 if args.ae_batch_size is None else args.ae_batch_size
         args.ae_epoch = 30 if args.ae_epoch is None else args.ae_epoch
@@ -131,28 +147,28 @@ for i in range(args.times):
 
     elif args.dataset_name == "fashionmnist":
         if args.normal_class != args.non_target_outlier_class:
-            unlabeled_normal_number = 5000
-            labeled_normal_number = 0
+            unlabeled_normal_number = int(5000 * args.s_normal)
+            labeled_normal_number = int(0 * args.s_normal)
             test_normal = 1000
 
-            unlabeled_non_target_outlier_number = 50
-            labeled_non_target_outlier_number = 100
+            unlabeled_non_target_outlier_number = int(50 * args.s_normal)
+            labeled_non_target_outlier_number = int(100 * args.s_normal)
             test_non_target_outlier = 100
 
-            unlabeled_target_outlier_number = 50
-            labeled_target_outlier_number = 100
+            unlabeled_target_outlier_number = int(50 * args.s_normal)
+            labeled_target_outlier_number = int(100 * args.s_normal)
             test_target_outlier = 100
         else:
-            unlabeled_normal_number = 5000
-            labeled_normal_number = 0
+            unlabeled_normal_number = int(5000 * args.s_normal)
+            labeled_normal_number = int(0 * args.s_normal)
             test_normal = 1000
 
-            unlabeled_non_target_outlier_number = 0
-            labeled_non_target_outlier_number = 0
+            unlabeled_non_target_outlier_number = int(0 * args.s_normal)
+            labeled_non_target_outlier_number = int(0 * args.s_normal)
             test_non_target_outlier = 0
 
-            unlabeled_target_outlier_number = 100
-            labeled_target_outlier_number = 100
+            unlabeled_target_outlier_number = int(100 * args.s_normal)
+            labeled_target_outlier_number = args.labeled_target_outlier_number
             test_target_outlier = 100
         if args.model_type == "BiasedADM":
             labeled_non_target_outlier_number = 0
@@ -179,10 +195,9 @@ for i in range(args.times):
             default_eta_1 = 1
             default_eta_2 = 1
         elif args.model_type == "BiasedADM":
-            labeled_target_outlier_number = args.labeled_target_outlier_number
             contaminationRate = args.contamination_for_FMNIST
 
-            if args.contamination_for_FMNIST != 0.02:
+            if contaminationRate != 0.02:
                 unlabeled_target_outlier_number = (unlabeled_normal_number + labeled_normal_number + unlabeled_non_target_outlier_number + labeled_non_target_outlier_number + labeled_target_outlier_number) * args.contamination_for_FMNIST / (1 - args.contamination_for_FMNIST)
                 unlabeled_target_outlier_number = int(round(unlabeled_target_outlier_number))
 
@@ -214,7 +229,7 @@ for i in range(args.times):
             file_save_path = args.dir_path + "/" + str(args.normal_class) + "x" + str(args.target_outlier_class)
 
         # file_name = "normal=" + str(args.normal_class) + ",non_target=" + str(args.non_target_outlier_class) + ",target=" + str(args.target_outlier_class) + ","
-        file_name = f"normal={args.normal_class},non_target={args.non_target_outlier_class},target={args.target_outlier_class},labeled_target_outlier_number={args.labeled_target_outlier_number},"
+        file_name = f"normal={args.normal_class},non_target={args.non_target_outlier_class},target={args.target_outlier_class},s_normal={args.s_normal},labeled_target_outlier_number={args.labeled_target_outlier_number},"
         args.ae_lr = 0.0001 if args.ae_lr is None else args.ae_lr
         args.ae_batch_size = 128 if args.ae_batch_size is None else args.ae_batch_size
         args.ae_epoch = 10 if args.ae_epoch is None else args.ae_epoch
@@ -264,84 +279,101 @@ for i in range(args.times):
     if not os.path.exists("./log/{}_log".format(args.dir_path.split("/")[-1])):
         os.makedirs("./log/{}_log".format(args.dir_path.split("/")[-1]))
 
-    writer = writer2txt()    
+    writer = writer2txt()
+    # output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
+    # output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
+    output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},sample_count={args.sample_count}'
     
-    # from sklearn.ensemble import RandomForestClassifier #集成学习中的随机森林
-    # from sklearn.metrics import auc, roc_curve, precision_recall_curve, roc_auc_score,confusion_matrix, classification_report, f1_score
-    # import seaborn as sns
+    from sklearn.ensemble import RandomForestClassifier #集成学习中的随机森林
+    from sklearn.metrics import auc, roc_curve, precision_recall_curve, roc_auc_score,confusion_matrix, classification_report, f1_score
+    import seaborn as sns
 
-    # x_train = dataset.train_set.data
-    # y_train = dataset.train_set.labels
-    # target_y_train = dataset.train_set.semi_targets
+    x_train = dataset.train_set.data
+    y_train = dataset.train_set.labels
+    target_y_train = dataset.train_set.semi_targets
 
-    # x_test = dataset.test_set.data
-    # y_test = dataset.test_set.labels
-    # target_y_test = dataset.test_set.semi_targets
+    x_test = dataset.test_set.data
+    y_test = dataset.test_set.labels
+    target_y_test = dataset.test_set.semi_targets
 
-    # random.seed(args.random_seed)
-    # normal_samples = x_train[random.sample(np.where(target_y_train==0)[0].tolist(), 400)]
-    # non_target_samples = x_train[np.where(target_y_train==-2)[0]]
-    # target_samples = x_train[np.where(target_y_train==-1)[0]]
     
-    # # 三类
-    # rf_x_train = np.concatenate([normal_samples, non_target_samples, target_samples], axis=0)
-    # rf_y_train = np.concatenate([np.zeros(normal_samples.shape[0]),
-    #                              np.zeros(non_target_samples.shape[0]) - 2,
-    #                              np.zeros(target_samples.shape[0]) - 1,], axis=0)#建立模型
-    # rfc = RandomForestClassifier(random_state=0)
-    # rfc = rfc.fit(rf_x_train, rf_y_train)
-    # y_pred = rfc.predict(x_test)
-    # print(Counter(y_pred))
-    # print(Counter(target_y_test))
-    # y_prob = rfc.predict_proba(x_test)
+    # if args.RF == "RF3":
+    #     # 三类
+    #     random.seed(args.random_seed)
+    #     non_target_samples = x_train[np.where(target_y_train==-2)[0]]
+    #     target_samples = x_train[np.where(target_y_train==-1)[0]]
+    #     normal_samples = x_train[random.sample(np.where(target_y_train==0)[0].tolist(), len(non_target_samples))]
+    #     rf_x_train = np.concatenate([normal_samples, non_target_samples, target_samples], axis=0)
+    #     rf_y_train = np.concatenate([np.zeros(normal_samples.shape[0]),
+    #                                 np.zeros(non_target_samples.shape[0]) - 2,
+    #                                 np.zeros(target_samples.shape[0]) - 1,], axis=0)#建立模型
+    #     for temp in range(10):
+    #         rfc = RandomForestClassifier()
+    #         rfc = rfc.fit(rf_x_train, rf_y_train)
+    #         y_pred = rfc.predict(x_test)
+    #         print(Counter(y_pred))
+    #         print(Counter(target_y_test))
+    #         y_prob = rfc.predict_proba(x_test)
 
-    # cm = confusion_matrix(target_y_test, y_pred)
-    # print(cm)
-    # print(classification_report(target_y_test, y_pred))
+    #         cm = confusion_matrix(target_y_test, y_pred)
+    #         print(cm)
+    #         print(classification_report(target_y_test, y_pred))
 
-    # precision, recall, threshold = precision_recall_curve(y_test, y_prob[:,1])
-    # rf_test_auc_pr = auc(recall, precision)
-    # print(rf_test_auc_pr)
+    #         precision, recall, threshold = precision_recall_curve(y_test, y_prob[:,1])
+    #         rf_test_AUPRC = auc(recall, precision)
+    #         rf_test_AUROC = roc_auc_score(y_test, y_prob[:,1])
+    #         f1 = np.nanmax(2 * recall * precision / (recall + precision))
+    #         print(rf_test_AUPRC)
+    #         print(rf_test_AUROC)
+    #         output_name = file_name + f'contaminationRate={contaminationRate}'
+    #         with open("{}/{}.txt".format(file_save_path, output_name), 'a+') as f:
+    #             f.write('Test AUC: {:.2f}% | Test PRC: {:.2f}% | Test F1: {:.2f}'.format(100. * rf_test_AUROC, 100. * rf_test_AUPRC, f1 * 100))
+    #             f.write('\n')
+    #         print()
+    #     continue
+        
+    # if args.RF == "RF2":
+    #     # 两类
+    #     random.seed(args.random_seed)
+    #     target_samples = x_train[np.where(target_y_train==-1)[0]]
+    #     normal_samples = x_train[random.sample(np.where(target_y_train==0)[0].tolist(), len(target_samples))]
+    #     rf_x_train = np.concatenate([normal_samples, target_samples], axis=0)
+    #     rf_y_train = np.concatenate([np.zeros(normal_samples.shape[0]),
+    #                                     np.zeros(target_samples.shape[0]) + 1,], axis=0)#建立模型
+    #     for temp in range(10):
+    #         rfc = RandomForestClassifier()
+    #         rfc = rfc.fit(rf_x_train, rf_y_train)
+    #         y_pred = rfc.predict(x_test)
+    #         print(Counter(y_pred))
+    #         print(Counter(y_test))
+    #         y_prob = rfc.predict_proba(x_test)
 
-    # 两类
-    # rf_x_train = np.concatenate([normal_samples, target_samples], axis=0)
-    # rf_y_train = np.concatenate([np.zeros(normal_samples.shape[0]),
-    #                              np.zeros(target_samples.shape[0]) + 1,], axis=0)#建立模型
-    # rfc = RandomForestClassifier(random_state=0)
-    # rfc = rfc.fit(rf_x_train, rf_y_train)
-    # y_pred = rfc.predict(x_test)
-    # print(Counter(y_pred))
-    # print(Counter(y_test))
-    # y_prob = rfc.predict_proba(x_test)
+    #         cm = confusion_matrix(y_test, y_pred)
+    #         print(cm)
+    #         print(classification_report(y_test, y_pred))
 
-    # cm = confusion_matrix(y_test, y_pred)
-    # print(cm)
-    # print(classification_report(y_test, y_pred))
+    #         precision, recall, threshold = precision_recall_curve(y_test, y_prob[:,1])
+    #         rf_test_AUPRC = auc(recall, precision)
+    #         rf_test_AUROC = roc_auc_score(y_test, y_prob[:,1])
+    #         f1 = np.nanmax(2 * recall * precision / (recall + precision))
+    #         print(rf_test_AUPRC)
+    #         print(rf_test_AUROC)
+    #         output_name = file_name + f'contaminationRate={contaminationRate}'
+    #         with open("{}/{}.txt".format(file_save_path, output_name), 'a+') as f:
+    #             f.write('Test AUC: {:.2f}% | Test PRC: {:.2f}% | Test F1: {:.2f}'.format(100. * rf_test_AUROC, 100. * rf_test_AUPRC, f1 * 100))
+    #             f.write('\n')
+    #         print()
+    #     continue
 
-    # precision, recall, threshold = precision_recall_curve(y_test, y_prob[:,1])
-    # rf_test_auc_pr = auc(recall, precision)
-    # print(rf_test_auc_pr)
-    
-    if args.model_type == "BiasedADM":
+    if args.intermediate_flag:
         x_train = np.array(dataset.train_set.data)
         y_train = np.array(dataset.train_set.labels)
         target_y_train = np.array(dataset.train_set.semi_targets)
         x_test = np.array(dataset.test_set.data)
         y_test = np.array(dataset.test_set.labels)
         target_y_test = np.array(dataset.test_set.semi_targets)
-
-        if re.search("Unlabelled_data", args.dataset_name):
-            npz_name = f"dataset_name={args.dataset_name}.npz"
-        elif args.dataset_name == "nb15":
-            npz_name = f"dataset_name={args.dataset_name},s_non_target={args.s_non_target},s_target={args.s_target},nb15_non_target_class_num={args.nb15_non_target_class_num},nb15_target_class={args.nb15_target_class}.npz"
-        elif args.dataset_name == "fashionmnist":
-            npz_name = f"dataset_name={args.dataset_name},normal_class={args.normal_class},non_target_outlier_class={args.non_target_outlier_class},target_outlier_class={args.target_outlier_class},contamination_for_FMNIST={args.contamination_for_FMNIST},labeled_target_outlier_number={args.labeled_target_outlier_number}.npz"
-            y_train = np.array(list(map(lambda x: int(x == args.target_outlier_class), y_train)))
-            y_test = np.array(list(map(lambda x: int(x == args.target_outlier_class), y_test)))
-        elif args.dataset_name == "SQB":
-            npz_name = f"dataset_name={args.dataset_name}.npz"
         
-        np.savez(f"./processed_data/{npz_name}",
+        np.savez(f"./processed_data/{args.model_type}/{output_name}",
                  x_train=x_train,
                  y_train=y_train,
                  target_y_train=target_y_train,
@@ -365,14 +397,11 @@ for i in range(args.times):
         train_loader, test_loader = dataset.loaders(batch_size=128, drop_last_train = False)
         train_data_input, train_data_label, train_data_semi_target = model.intermediate_result(train_loader)
         test_data_input, test_data_label, test_data_semi_target = model.intermediate_result(test_loader)
-        npz_name = f'./intermediate_results/fmnist_data_for_BADM_{args.normal_class}{args.non_target_outlier_class}{args.target_outlier_class}_{args.contamination_for_FMNIST}_{args.labeled_target_outlier_number}.npz'
+        npz_name = f'./intermediate_results/{args.model_type}/{output_name}.npz'
         np.savez(npz_name , x_train = train_data_input, y_train = train_data_label, target_y_train = train_data_semi_target, x_test = test_data_input, y_test = test_data_label, target_y_test = test_data_semi_target)
         # np.savez(file_save_path + "/" + file_name + "train_data.npz", train_data_input = train_data_input, train_data_label = train_data_label, train_data_semi_target = train_data_semi_target)
         # np.savez(file_save_path + "/" + file_name + "test_data.npz", test_data_input = test_data_input, test_data_label = test_data_label, test_data_semi_target = test_data_semi_target)
     else:
-        # output_name = file_name + 'contaminationRate={},eta0={},eta1={},eta2={},BAD_lr={},BAD_batchsize={},BAD_epoch={},sample_count={},model_type={},update_anchor={}'.format(str(contaminationRate), str(args.eta_0), str(args.eta_1), str(args.eta_2), str(BAD_lr), str(BAD_batch_size), str(BAD_epoch), str(args.sample_count), args.model_type, args.update_anchor)
-        # output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},update_anchor={args.update_anchor},update_epoch={args.update_epoch},sample_count={args.sample_count}'
-        output_name = file_name + f'contaminationRate={contaminationRate},eta0={args.eta_0},model_type={args.model_type},sample_count={args.sample_count}'
         writer.set_output_name(output_name)
         writer.set_file_save_path(file_save_path)
         writer.set_path("{}/{}.txt".format(file_save_path, output_name), "./log/{}_log/{}".format(args.dir_path.split("/")[-1], output_name))
