@@ -24,10 +24,10 @@ class MyDataset(Dataset):
 class NB15_contamination_Dataset():
 
     def __init__(self, file_name, seed):
-        
-        Labelled_non_target_target = pd.read_csv('./data/nb15_contamination/Labelled_data.csv', index_col=0)
-        Unlabelled_mix = pd.read_csv('./data/nb15_contamination/' + str(file_name) + ".csv", index_col=0)
-        test_mix = pd.read_csv('./data/nb15_contamination/test_data.csv', index_col=0)
+
+        Labelled_non_target_target = pd.read_csv('/home/hzw/MBAD/BiasedAD/data/nb15_contamination/Labelled_data.csv', index_col=0)
+        Unlabelled_mix = pd.read_csv('/home/hzw/MBAD/BiasedAD/data/nb15_contamination/' + str(file_name) + ".csv", index_col=0)
+        test_mix = pd.read_csv('/home/hzw/MBAD/BiasedAD/data/nb15_contamination/test_data.csv', index_col=0)
 
         s_non_target=100
         Labelled_non_target = Labelled_non_target_target.loc[(Labelled_non_target_target['attack_cat'] == 'Fuzzers') |
@@ -57,8 +57,11 @@ class NB15_contamination_Dataset():
         x_test = test_mix.drop(['attack_cat','label'], axis=1).values
         x_test = x_test.astype(np.float32)
         x_test[np.isnan(x_test)] = 0
-        y_test = test_mix.loc[:,['label']].values[:,0].astype(np.int)
-        target_y_test = np.ones(len(x_test))
+        y_test = test_mix.loc[:, ['label']].values[:, 0].astype(np.int)
+        test_attack_cat = test_mix['attack_cat'].values
+        target_y_test = np.zeros(len(x_test))
+        target_y_test[np.isin(test_attack_cat, ['DoS', 'Generic', 'Backdoor'])] = -1
+        target_y_test[np.isin(test_attack_cat, ['Fuzzers', 'Analysis', 'Exploits', 'Reconnaissance'])] = -2
         
         # train
         # 划分X、Y

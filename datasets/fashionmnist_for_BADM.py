@@ -146,7 +146,7 @@ class fashionmnist_for_BADM(TorchvisionDataset):
         labeled_target_outlier_idx, _ = self.get_random_sample(test_set, target_outlier_class, test_target_outlier, 0, self.random_seed + 5)
 
         test_set.semi_targets[labeled_normal_idx] = 0
-        test_set.semi_targets[labeled_non_target_outlier_idx] = -2
+        test_set.semi_targets[labeled_non_target_outlier_idx] = 0
         test_set.semi_targets[labeled_target_outlier_idx] = -1
 
         print("=========test=========")
@@ -168,6 +168,12 @@ class fashionmnist_for_BADM(TorchvisionDataset):
 
         self.train_set = MyDataset(x_train, y_train, target_y_train, transform=transform, target_transform=target_transform)
         self.test_set = MyDataset(x_test, y_test, target_y_test, transform=transform, target_transform=target_transform)
+
+        print('y_train', Counter(y_train.flatten().numpy()))
+        print('target_y_train', Counter(target_y_train.flatten().numpy()))
+
+        print('y_test', Counter(y_test.flatten().numpy()))
+        print('target_y_test', Counter(target_y_test.flatten().numpy()))
 
 
     def modify_sampled(self, index, new_value):

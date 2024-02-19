@@ -84,7 +84,10 @@ class nb15_for_BADM():
         x_test = x_test.astype(np.float32)
         x_test[np.isnan(x_test)] = 0
         y_test = test_mix.loc[:, ['label']].values[:, 0].astype(int)
-        target_y_test = np.ones(len(x_test))
+        test_attack_cat = test_mix['attack_cat'].values
+        target_y_test = np.zeros(len(x_test))
+        target_y_test[np.isin(test_attack_cat, ['DoS', 'Generic', 'Backdoor'])] = -1
+        # target_y_test[np.isin(test_attack_cat, ['Fuzzers', 'Analysis', 'Exploits', 'Reconnaissance'])] = -2
         print('y_test:', Counter(y_test))
         print('target_y_test', Counter(target_y_test))
 

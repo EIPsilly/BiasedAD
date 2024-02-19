@@ -162,4 +162,10 @@ class FashionMNIST_Dataset(TorchvisionDataset):
         self.train_set = MyDataset(x_train, y_train, target_y_train, transform=transform, target_transform=target_transform)
         self.test_set = MyDataset(x_test, y_test, target_y_test, transform=transform, target_transform=target_transform)
 
+        print('y_train', Counter(y_train.flatten().numpy()))
+        print('target_y_train', Counter(target_y_train.flatten().numpy()))
+
+        print('y_test', Counter(y_test.flatten().numpy()))
+        print('target_y_test', Counter(target_y_test.flatten().numpy()))
+
 
